@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchProducts } from '../api';
 
 function CashierView() {
@@ -7,6 +7,7 @@ function CashierView() {
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState([]);
+  const [orderTotal, setOrderTotal] = useState({ subtotal: 0, tax: 0, total: 0 });
   
   const categories = [
     { id: 'all', name: 'All Items' },
@@ -14,6 +15,24 @@ function CashierView() {
     { id: 'fruit_tea', name: 'Fruit Tea' },
     { id: 'coffee', name: 'Coffee' },
   ];
+
+  const defaultCustomizations = {
+    ice: '100%',
+    topping: 'None'
+  };
+
+  const calculateTotals = useCallback(() => {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const taxRate = 0.0825; // 8.25%
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax;
+    
+    setOrderTotal({
+      subtotal,
+      tax,
+      total
+    });
+  }, [cart]);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -33,24 +52,72 @@ function CashierView() {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    calculateTotals();
+  }, [calculateTotals]);
+
   const handleCategoryChange = (categoryId) => {
     setActiveCategory(categoryId);
-    // Later this would filter products based on category
   };
 
-  // Placeholder function for adding products to cart
+  const getFilteredProducts = () => {
+    if (activeCategory === 'all') {
+      return products;
+    }
+    
+    return products.filter(product => {
+      if (product.category_id) {
+        return product.category_id === activeCategory;
+      }
+      if (product.product_type) {
+        const normalizedType = product.product_type.toLowerCase().replace(/\s+/g, '_');
+        return normalizedType === activeCategory;
+      }
+      return false;
+    });
+  };
+
   const addToCart = (product) => {
-    console.log('Product added to cart:', product);
-    // This would be implemented later
+    const cartItem = {
+      id: Date.now(),
+      product_id: product.product_id,
+      name: product.product_name,
+      price: product.product_cost,
+      customizations: { ...defaultCustomizations },
+      quantity: 1
+    };
+
+    setCart([...cart, cartItem]);
+    console.log('Product added to cart:', cartItem);
+  };
+
+  const removeFromCart = (cartItemId) => {
+    setCart(cart.filter(item => item.id !== cartItemId));
+  };
+
+  const updateQuantity = (cartItemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    
+    setCart(cart.map(item => 
+      item.id === cartItemId 
+        ? { ...item, quantity: newQuantity } 
+        : item
+    ));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  const processPayment = () => {
+    alert('Processing payment for $' + orderTotal.total.toFixed(2));
+    // Can call API to process payment here
   };
 
   if (loading) return <div>Loading products...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  // Filter products by category (when implemented)
-  const filteredProducts = activeCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category_id === activeCategory);
+  const filteredProducts = getFilteredProducts();
 
   return (
     <div className="cashier-view">
@@ -86,16 +153,20 @@ function CashierView() {
             </div>
 
             <div className="product-grid">
-              {filteredProducts.map(product => (
-                <div 
-                  key={product.product_id} 
-                  className="product-btn"
-                  onClick={() => addToCart(product)}
-                >
-                  <div>{product.product_name}</div>
-                  <div>${product.product_cost.toFixed(2)}</div>
-                </div>
-              ))}
+            {filteredProducts.length > 0 ? (
+                filteredProducts.map(product => (
+                  <div 
+                    key={product.product_id} 
+                    className="product-btn"
+                    onClick={() => addToCart(product)}
+                  >
+                    <div>{product.product_name}</div>
+                    <div>${product.product_cost.toFixed(2)}</div>
+                  </div>
+                ))
+              ) : (
+                <p>No products found in this category</p>
+              )}
             </div>
           </div>
 
@@ -109,25 +180,55 @@ function CashierView() {
                   <tr>
                     <th>Item</th>
                     <th>Customizations</th>
+                    <th>Qty</th>
                     <th>Price</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Cart items would be rendered here */}
+                {cart.map(item => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td>
+                        Ice: {item.customizations.ice}<br />
+                        Topping: {item.customizations.topping}
+                      </td>
+                      <td>
+                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                        {item.quantity}
+                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                      </td>
+                      <td>${(item.price * item.quantity).toFixed(2)}</td>
+                      <td>
+                        <button onClick={() => removeFromCart(item.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             )}
 
             <div className="cart-total">
-              <p>Subtotal: $0.00</p>
-              <p>Tax (8.25%): $0.00</p>
-              <p><strong>Total: $0.00</strong></p>
+              <p>Subtotal: ${orderTotal.subtotal.toFixed(2)}</p>
+              <p>Tax (8.25%): ${orderTotal.tax.toFixed(2)}</p>
+              <p><strong>Total: ${orderTotal.total.toFixed(2)}</strong></p>
             </div>
 
             <div className="checkout-actions">
-              <button className="checkout-btn" disabled>Process Payment</button>
-              <button className="cancel-btn">Cancel Order</button>
+            <button 
+                className="checkout-btn" 
+                disabled={cart.length === 0}
+                onClick={processPayment}
+              >
+                Process Payment
+              </button>
+              <button 
+                className="cancel-btn"
+                onClick={clearCart}
+                disabled={cart.length === 0}
+              >
+                Cancel Order
+              </button>
             </div>
           </div>
         </div>
