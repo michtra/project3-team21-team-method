@@ -13,7 +13,7 @@ function CashierView() {
     { id: 'all', name: 'All Items' },
     { id: 'milk_tea', name: 'Milk Tea' },
     { id: 'fruit_tea', name: 'Fruit Tea' },
-    { id: 'coffee', name: 'Coffee' },
+    { id: 'classic_tea', name: 'Classic Tea' },
   ];
 
   const defaultCustomizations = {
@@ -23,7 +23,7 @@ function CashierView() {
 
   const calculateTotals = useCallback(() => {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const taxRate = 0.0825; // 8.25%
+    const taxRate = 0.0825;
     const tax = subtotal * taxRate;
     const total = subtotal + tax;
     
@@ -120,116 +120,101 @@ function CashierView() {
   const filteredProducts = getFilteredProducts();
 
   return (
-    <div className="cashier-view">
-      <h1>Sharetea Cashier System</h1>
-      
-      <div className="cashier-container">
-        <div className="customer-info">
-          <div>
-            <label htmlFor="customer-name">Customer Name:</label>
-            <input type="text" id="customer-name" placeholder="Optional" />
+    <div className="cashier-dashboard-container">
+      <h1 className="cashier-dashboard-header">Sharetea Cashier Interface</h1>
+
+      <div className="cashier-main-area">
+
+        {/* Search function should be placed here */}
+        
+        <div className="product-catalog">
+          <div className="category-filters">
+            {categories.map(category => (
+              <button 
+                key={category.id}
+                className={`category-filter-button ${activeCategory === category.id ? 'category-filter-active' : ''}`}
+                onClick={() => handleCategoryChange(category.id)}
+              >
+                {category.name}
+              </button>
+            ))}
           </div>
-          <div>
-            <label htmlFor="order-type">Order Type:</label>
-            <select id="order-type">
-              <option value="dine-in">Dine In</option>
-              <option value="takeout">Takeout</option>
-            </select>
+
+          <div className="product-grid">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map(product => (
+                <div 
+                  key={product.product_id} 
+                  className="product-card"
+                  onClick={() => addToCart(product)}
+                >
+                  <div className="product-card-name">{product.product_name}</div>
+                  <div className="product-card-price">${product.product_cost.toFixed(2)}</div>
+                </div>
+              ))
+            ) : (
+              <p>No products found in this category</p>
+            )}
           </div>
         </div>
 
-        <div className="order-section">
-          <div className="product-selection">
-            <div className="category-nav">
-              {categories.map(category => (
-                <button 
-                  key={category.id}
-                  className={activeCategory === category.id ? 'active' : ''}
-                  onClick={() => handleCategoryChange(category.id)}
-                >
-                  {category.name}
-                </button>
+        <div className="order-summary">
+          <h2 className="order-summary-header">Current Order</h2>
+          
+          {cart.length === 0 ? (
+            <p>No items in cart</p>
+          ) : (
+            <div className="cart-items-list">
+              {cart.map(item => (
+                <div key={item.id} className="cart-item">
+                  <div className="cart-item-info">
+                    <div className="cart-item-name">{item.name}</div>
+                    <div className="cart-item-customizations">
+                      Ice: {item.customizations.ice} • Topping: {item.customizations.topping}
+                    </div>
+                  </div>
+                  <div className="cart-item-price">${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="cart-item-controls">
+                    <button className="quantity-control" onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                    <span className="quantity-display">{item.quantity}</span>
+                    <button className="quantity-control" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                    <button className="quantity-control" onClick={() => removeFromCart(item.id)}>✕</button>
+                  </div>
+                </div>
               ))}
             </div>
+          )}
 
-            <div className="product-grid">
-            {filteredProducts.length > 0 ? (
-                filteredProducts.map(product => (
-                  <div 
-                    key={product.product_id} 
-                    className="product-btn"
-                    onClick={() => addToCart(product)}
-                  >
-                    <div>{product.product_name}</div>
-                    <div>${product.product_cost.toFixed(2)}</div>
-                  </div>
-                ))
-              ) : (
-                <p>No products found in this category</p>
-              )}
+          <div className="order-total-section">
+            <div className="order-subtotal">
+              <span>Subtotal:</span>
+              <span>${orderTotal.subtotal.toFixed(2)}</span>
+            </div>
+            <div className="order-tax">
+              <span>Tax (8.25%):</span>
+              <span>${orderTotal.tax.toFixed(2)}</span>
+            </div>
+            <div className="order-total">
+              <span>Total:</span>
+              <span>${orderTotal.total.toFixed(2)}</span>
             </div>
           </div>
 
-          <div className="cart">
-            <h2>Current Order</h2>
-            {cart.length === 0 ? (
-              <p>No items in cart</p>
-            ) : (
-              <table className="cart-table">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Customizations</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                {cart.map(item => (
-                    <tr key={item.id}>
-                      <td>{item.name}</td>
-                      <td>
-                        Ice: {item.customizations.ice}<br />
-                        Topping: {item.customizations.topping}
-                      </td>
-                      <td>
-                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
-                        {item.quantity}
-                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                      </td>
-                      <td>${(item.price * item.quantity).toFixed(2)}</td>
-                      <td>
-                        <button onClick={() => removeFromCart(item.id)}>Remove</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            <div className="cart-total">
-              <p>Subtotal: ${orderTotal.subtotal.toFixed(2)}</p>
-              <p>Tax (8.25%): ${orderTotal.tax.toFixed(2)}</p>
-              <p><strong>Total: ${orderTotal.total.toFixed(2)}</strong></p>
-            </div>
-
-            <div className="checkout-actions">
+          <div className="checkout-buttons">
             <button 
-                className="checkout-btn" 
-                disabled={cart.length === 0}
-                onClick={processPayment}
-              >
-                Process Payment
-              </button>
-              <button 
-                className="cancel-btn"
-                onClick={clearCart}
-                disabled={cart.length === 0}
-              >
-                Cancel Order
-              </button>
-            </div>
+              className="checkout-button checkout-button-primary" 
+              disabled={cart.length === 0}
+              onClick={processPayment}
+            >
+              Process Payment
+            </button>
+            <button 
+              className="checkout-button checkout-button-secondary"
+              onClick={clearCart}
+              disabled={cart.length === 0}
+            >
+              Cancel Order
+            </button>
           </div>
         </div>
       </div>
