@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchProducts } from '../api';
+import DrinkCustomizationModal from '../components/DrinkCustomizationModal';
 
 function CashierView() {
   const [products, setProducts] = useState([]);
@@ -8,7 +9,16 @@ function CashierView() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [orderTotal, setOrderTotal] = useState({ subtotal: 0, tax: 0, total: 0 });
-  
+
+  // Pop Up initialization
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+  const closePopup = () => {
+    setSelectedProduct(null);
+  };
+
   const categories = [
     { id: 'all', name: 'All Items' },
     { id: 'milk_tea', name: 'Milk Tea' },
@@ -16,10 +26,10 @@ function CashierView() {
     { id: 'coffee', name: 'Coffee' },
   ];
 
-  const defaultCustomizations = {
-    ice: '100%',
-    topping: 'None'
-  };
+  // const defaultCustomizations = {
+  //   ice: '100%',
+  //   topping: 'None'
+  // }; // to be removed because it isn't being used
 
   const calculateTotals = useCallback(() => {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -77,19 +87,26 @@ function CashierView() {
     });
   };
 
-  const addToCart = (product) => {
+
+  // Confirms customized product values and adds to current order
+  const addToCart = (customizedProduct) => {
     const cartItem = {
       id: Date.now(),
-      product_id: product.product_id,
-      name: product.product_name,
-      price: product.product_cost,
-      customizations: { ...defaultCustomizations },
+      product_id: customizedProduct.product_id,
+      name: customizedProduct.name || 'Unknown',
+      price: customizedProduct.price || 0,
+      customizations: customizedProduct.customizations || 'None',
       quantity: 1
     };
-
-    setCart([...cart, cartItem]);
-    console.log('Product added to cart:', cartItem);
+  
+    console.log("Final cart item:", cartItem);
+    console.log("Final cart name:", cartItem.name);
+    console.log("Final cart price:", cartItem.price);
+  
+    setCart(prev => [...prev, cartItem]);
   };
+  
+  
 
   const removeFromCart = (cartItemId) => {
     setCart(cart.filter(item => item.id !== cartItemId));
@@ -119,6 +136,8 @@ function CashierView() {
 
   const filteredProducts = getFilteredProducts();
 
+  
+  
   return (
     <div className="cashier-view">
       <h1>Sharetea Cashier System</h1>
@@ -158,7 +177,7 @@ function CashierView() {
                   <div 
                     key={product.product_id} 
                     className="product-btn"
-                    onClick={() => addToCart(product)}
+                    onClick={() => handleProductClick(product)}
                   >
                     <div>{product.product_name}</div>
                     <div>${product.product_cost.toFixed(2)}</div>
@@ -170,6 +189,19 @@ function CashierView() {
             </div>
           </div>
 
+          {/* Pop Up Section */}
+          {selectedProduct && (
+            <DrinkCustomizationModal
+              product={selectedProduct}
+              onClose={closePopup}
+
+              onConfirm={(customizedProduct) => {
+                addToCart(customizedProduct); 
+                closePopup();
+              }}
+            />
+          )}
+        
           <div className="cart">
             <h2>Current Order</h2>
             {cart.length === 0 ? (
@@ -190,9 +222,19 @@ function CashierView() {
                     <tr key={item.id}>
                       <td>{item.name}</td>
                       <td>
-                        Ice: {item.customizations.ice}<br />
-                        Topping: {item.customizations.topping}
+                        Sugar: {item.customizations?.sugar || '100%'}<br />
+                        Ice: {item.customizations?.ice || '100%'}<br />
+                        Toppings:
+                        <ul>
+                          {item.customizations?.toppings &&
+                            Object.entries(item.customizations?.toppings).map(([key, value]) => (
+                              <li key={key}>{key}: {value}</li>
+                            ))
+                            
+                          }
+                        </ul>
                       </td>
+
                       <td>
                         <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
                         {item.quantity}
