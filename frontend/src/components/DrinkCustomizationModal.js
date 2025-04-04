@@ -141,7 +141,7 @@ function DrinkCustomizationModal({ product, onClose, onConfirm }) {
 
 
         <div className="modal-actions" style={{ marginTop: '20px' }}>
-          <button className="confirm-btn" onClick={handleConfirm}>CONFIRM</button>
+          <button className="checkout-btn" onClick={handleConfirm}>CONFIRM</button>
           <button className="cancel-btn" onClick={onClose}>CANCEL</button>
         </div>
       </div>
