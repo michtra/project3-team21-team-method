@@ -262,3 +262,132 @@ table td {
 .error {
   color: #f44336;
 }
+
+
+/* Menu Board Styles */
+.menu-board-container {
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.menu-board-header {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 3rem;
+  font-weight: 600;
+  color: #000000;
+  letter-spacing: 2px;
+}
+
+.menu-board-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.menu-category-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.category-milk_tea {
+  border-left: 6px solid #e0ba6e;
+}
+
+.category-milk_tea .menu-category-header {
+  color: #e0ba6e;
+}
+
+.category-milk_tea .menu-item-number {
+  background-color: #e0ba6e;
+}
+
+.category-fruit_tea {
+  border-left: 6px solid #4caf50;
+}
+
+.category-fruit_tea .menu-category-header {
+  color: #4caf50;
+}
+
+.category-fruit_tea .menu-item-number {
+  background-color: #4caf50;
+}
+
+.category-classic_tea {
+  border-left: 6px solid #000000;
+}
+
+.category-classic_tea .menu-category-header {
+  color: #000000;
+}
+
+.category-classic_tea .menu-item-number {
+  background-color: #000000;
+}
+
+.menu-category-header {
+  font-size: 2rem;
+  color: #4a90e2;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.menu-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.menu-item-number {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4a90e2;
+  color: white;
+  font-weight: 600;
+  border-radius: 50%;
+  margin-right: 15px;
+  font-size: 1.1rem;
+}
+
+.menu-item-content {
+  flex: 1;
+}
+
+.menu-item-name {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.menu-item-price {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4caf50;
+  margin: 0;
+}

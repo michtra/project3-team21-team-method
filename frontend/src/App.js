@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import KioskView from './views/KioskView';
+import MenuBoardView from './views/MenuBoardView';
 import './App.css';
 
 function App() {
@@ -9,12 +10,15 @@ function App() {
     switch(currentView) {
       case 'kiosk':
         return <KioskView />;
-      default:
+      case 'menuBoard':
+        return <MenuBoardView />;
+        default:
         return (
           <div className="main-menu">
             <h1>Sharetea POS System</h1>
             <div className="menu-buttons">
               <button onClick={() => setCurrentView('kiosk')}>Customer Kiosk</button>
+              <button onClick={() => setCurrentView('menuBoard')}>Menu Board</button>
             </div>
           </div>
         );
