@@ -33,10 +33,10 @@ function DrinkCustomizationModal({ product, onClose, onConfirm }) {
       
     };
 
-    // ================ DEBUGGING ========================
-    console.log("Sugar to be added:", sugarLevel);
-    console.log("Ice to be added:", iceLevel);
-    console.log("Toppings to be added:", selectedToppings);
+    // // ================ DEBUGGING ========================
+    // console.log("Sugar to be added:", sugarLevel);
+    // console.log("Ice to be added:", iceLevel);
+    // console.log("Toppings to be added:", selectedToppings);
 
     onConfirm(customizedProduct);
   };
@@ -141,8 +141,8 @@ function DrinkCustomizationModal({ product, onClose, onConfirm }) {
 
 
         <div className="modal-actions" style={{ marginTop: '20px' }}>
-          <button className="checkout-btn" onClick={handleConfirm}>CONFIRM</button>
-          <button className="cancel-btn" onClick={onClose}>CANCEL</button>
+          <button className="checkout-button checkout-button-primary" onClick={handleConfirm}>CONFIRM</button>
+          <button className="checkout-button checkout-button-secondary" onClick={onClose}>CANCEL</button>
         </div>
       </div>
     </div>

@@ -99,9 +99,12 @@ function CashierView() {
       quantity: 1
     };
   
-    console.log("Final cart item:", cartItem);
-    console.log("Final cart name:", cartItem.name);
-    console.log("Final cart price:", cartItem.price);
+    // // ========== DEBUGGING ======================================================
+    // console.log("Final cart item:", cartItem);
+    // console.log("Final cart name:", cartItem.name);
+    // console.log("Final cart price:", cartItem.price);
+    // console.log("Final cart toppings:", cartItem.customizations.toppings);
+
   
     setCart(prev => [...prev, cartItem]);
   };
@@ -201,9 +204,13 @@ function CashierView() {
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-info">
                     <div className="cart-item-name">{item.name}</div>
-                    <div className="cart-item-customizations">
-                      Ice: {item.customizations.ice} • Topping: {item.customizations.topping}
-                    </div>
+                      <div className="cart-item-customizations">
+                        Sugar: {item.customizations.sugar} • Ice: {item.customizations.ice} • 
+                        Toppings: {Object.keys(item.customizations.toppings || {}).length > 0 
+                          ? Object.entries(item.customizations.toppings).map(([name, amount]) => 
+                              `${name} (${amount})`).join(', ')
+                          : 'None'}
+                      </div>
                   </div>
                   <div className="cart-item-price">${(item.price * item.quantity).toFixed(2)}</div>
                   <div className="cart-item-controls">
@@ -214,8 +221,10 @@ function CashierView() {
                   </div>
                 </div>
               ))}
+              
             </div>
           )}
+          
 
           <div className="order-total-section">
             <div className="order-subtotal">
