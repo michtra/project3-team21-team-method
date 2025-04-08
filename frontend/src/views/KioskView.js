@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchProducts } from '../api';
 
-function CashierView() {
+function KioskView() {
+  console.log("✅ KioskView rendered");
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,14 +29,18 @@ function CashierView() {
     const taxRate = 0.0825;
     const tax = subtotal * taxRate;
     const total = subtotal + tax;
-
     setOrderTotal({ subtotal, tax, total });
   }, [cart]);
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
+        console.log("📦 Fetching Kiosk products...");
         const data = await fetchProducts();
+        console.log("✅ Kiosk products received:", data);
+        if (data.length > 0) {
+          console.log("🔍 First product object:", data[0]);
+        }
         setProducts(data);
         setLoading(false);
       } catch (err) {
@@ -42,7 +48,6 @@ function CashierView() {
         setLoading(false);
       }
     };
-
     loadProducts();
   }, []);
 
@@ -59,12 +64,10 @@ function CashierView() {
 
     if (activeCategory !== 'all') {
       filtered = filtered.filter(product => {
-        if (product.category_id) {
-          return product.category_id === activeCategory;
-        }
-        if (product.product_type) {
-          const normalizedType = product.product_type.toLowerCase().replace(/\s+/g, '_');
-          return normalizedType === activeCategory;
+        const categoryKey = product.category_id || product.product_type;
+        if (categoryKey) {
+          const normalized = categoryKey.toLowerCase().replace(/\s+/g, '_');
+          return normalized === activeCategory;
         }
         return false;
       });
@@ -72,7 +75,7 @@ function CashierView() {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(product => product.product_name.toLowerCase().includes(query));
+      filtered = filtered.filter(product => product.product_name?.toLowerCase().includes(query));
     }
 
     return filtered;
@@ -117,38 +120,71 @@ function CashierView() {
 
   const filteredProducts = getFilteredProducts();
 
+  const styles = {
+    header: {
+      marginTop: '0.5rem',
+      marginBottom: '0.5rem',
+      fontSize: '2rem',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    filtersContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.75rem',
+      marginTop: '0.5rem',
+      marginBottom: '1.5rem',
+    },
+    searchInput: {
+      padding: '0.5rem',
+      fontSize: '1rem',
+      borderRadius: '8px',
+      border: '1px solid #ccc',
+      width: '100%',
+    },
+    categoryFilterRow: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '0.5rem',
+    },
+    categoryButton: (isActive) => ({
+      padding: '0.5rem 1rem',
+      borderRadius: '20px',
+      border: `1px solid ${isActive ? '#007bff' : '#ccc'}`,
+      backgroundColor: isActive ? '#007bff' : '#fff',
+      color: isActive ? '#fff' : '#000',
+      cursor: 'pointer',
+      fontWeight: isActive ? '600' : '400',
+    }),
+  };
+
   return (
     <div className="cashier-dashboard-container">
-      <h1 className="cashier-dashboard-header">Sharetea Cashier Interface</h1>
+      <h1 style={styles.header}>🧋 KIOSK INTERFACE 🧋</h1>
 
       <div className="cashier-main-area">
         <div className="product-catalog">
-          
-          {/* Search Input */}
-          <div className="search-bar-container">
+          <div style={styles.filtersContainer}>
             <input
               type="text"
               placeholder="Search for a drink..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-bar-input"
+              style={styles.searchInput}
             />
+            <div style={styles.categoryFilterRow}>
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  style={styles.categoryButton(activeCategory === category.id)}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Category Filters */}
-          <div className="category-filters">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                className={`category-filter-button ${activeCategory === category.id ? 'category-filter-active' : ''}`}
-                onClick={() => handleCategoryChange(category.id)}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Product Grid */}
           <div className="product-grid">
             {filteredProducts.length > 0 ? (
               filteredProducts.map(product => (
@@ -167,7 +203,6 @@ function CashierView() {
           </div>
         </div>
 
-        {/* Order Summary */}
         <div className="order-summary">
           <h2 className="order-summary-header">Current Order</h2>
 
@@ -232,4 +267,4 @@ function CashierView() {
   );
 }
 
-export default CashierView;
+export default KioskView;

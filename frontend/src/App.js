@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import KioskView from './views/KioskView';
-import CashierView from './views/CashierViews';
+import KioskView from './views/KioskView';        
+import CashierView from './views/CashierViews';   
 import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('main');
 
   const renderView = () => {
-    switch(currentView) {
+    switch (currentView) {
       case 'kiosk':
         return <KioskView />;
       case 'cashier':
