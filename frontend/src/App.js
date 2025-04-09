@@ -4,6 +4,7 @@ import KioskView from './views/KioskView';
 import ManagerView from './views/ManagerView';
 
 import CashierView from './views/CashierViews';
+import MenuBoardView from './views/MenuBoardView';
 import './App.css';
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
     switch(currentView) {
       case 'kiosk':
         return <KioskView />;
+      case 'menuBoard':
+        return <MenuBoardView />;
       case 'cashier':
         return <CashierView />;
       case 'manager':
@@ -23,6 +26,7 @@ function App() {
             <h1>Sharetea POS System</h1>
             <div className="menu-buttons">
               <button onClick={() => setCurrentView('kiosk')}>Customer Kiosk</button>
+              <button onClick={() => setCurrentView('menuBoard')}>Menu Board</button>
               <button onClick={() => setCurrentView('manager')}>Manager View</button>
               <button onClick={() => setCurrentView('cashier')}>Cashier System</button>
             </div>
