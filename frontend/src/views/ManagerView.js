@@ -1,60 +1,108 @@
-import React, { useState } from 'react';
+// ManagerView.js
+import React, {useState} from 'react';
+import {
+    Box,
+    Container,
+    Typography,
+    Tabs,
+    Tab,
+    Paper,
+    AppBar,
+    Toolbar
+} from '@mui/material';
+import {
+    Inventory as InventoryIcon,
+    LocalCafe as ProductsIcon,
+    BarChart as ReportIcon
+} from '@mui/icons-material';
 import ManagerInventoryView from './ManagerInventoryView';
 import ManagerProductView from './ManagerProductView';
-import ManagerReportView from './ManagerReportView'; 
+import ManagerReportView from './ManagerReportView';
 
+const ManagerView = () => {
+    const [activeTab, setActiveTab] = useState('inventory');
 
+    const handleTabChange = (event, newTab) => {
+        setActiveTab(newTab);
+    };
 
-const ManagerView = () => { 
-  const [activeTab, setActiveTab] = useState('inventory');
+    const renderActiveTab = () => {
+        switch (activeTab) {
+            case 'inventory':
+                return <ManagerInventoryView/>;
+            case 'products':
+                return <ManagerProductView/>;
+            case 'report':
+                return <ManagerReportView/>;
+            default:
+                return <ManagerInventoryView/>;
+        }
+    };
 
-  const renderActiveTab = () => {
-    switch (activeTab) {
-      case 'inventory':
-        return <ManagerInventoryView />; 
-      case 'products':
-        return <ManagerProductView />;
-      case 'report':
-        return <ManagerReportView />; 
-      default:
-        return <ManagerInventoryView />;
-    }
-  };
+    return (
+        <Box sx={{flexGrow: 1}}>
+            <AppBar position="static" color="primary" elevation={0}>
+                <Toolbar sx={{display: 'flex', justifyContent: 'center'}}>
+                    <Typography variant="h4" component="h1">
+                        Manager Dashboard
+                    </Typography>
+                </Toolbar>
+            </AppBar>
 
-  const getTabClassName = (tabName) => {
-    return `tab-button ${activeTab === tabName ? 'tab-button-active' : ''}`;
-  };
+            <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
+                <Paper
+                    elevation={3}
+                    sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Tabs
+                        value={activeTab}
+                        onChange={handleTabChange}
+                        variant="fullWidth"
+                        indicatorColor="secondary"
+                        textColor="inherit"
+                        aria-label="manager dashboard tabs"
+                        sx={{
+                            bgcolor: 'background.paper',
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            '& .MuiTab-root': {
+                                py: 2
+                            }
+                        }}
+                    >
+                        <Tab
+                            icon={<InventoryIcon/>}
+                            iconPosition="start"
+                            label="Inventory"
+                            value="inventory"
+                            sx={{minHeight: 64}}
+                        />
+                        <Tab
+                            icon={<ProductsIcon/>}
+                            iconPosition="start"
+                            label="Products"
+                            value="products"
+                            sx={{minHeight: 64}}
+                        />
+                        <Tab
+                            icon={<ReportIcon/>}
+                            iconPosition="start"
+                            label="Reports"
+                            value="report"
+                            sx={{minHeight: 64}}
+                        />
+                    </Tabs>
 
-  return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-header">Manager Dashboard</h1>
-
-      <div className="tabs-container">
-        <button
-          className={getTabClassName('inventory')}
-          onClick={() => setActiveTab('inventory')}
-        >
-          Inventory
-        </button>
-        <button
-          className={getTabClassName('products')}
-          onClick={() => setActiveTab('products')}
-        >
-          Products
-        </button>
-        <button
-          className={getTabClassName('report')}
-          onClick={() => setActiveTab('report')}
-        >
-          Report
-        </button>
-      </div>
-
-      <div>
-        {renderActiveTab()}
-      </div>
-    </div>
-  );
+                    <Box sx={{p: 3}}>
+                        {renderActiveTab()}
+                    </Box>
+                </Paper>
+            </Container>
+        </Box>
+    );
 };
 
-export default ManagerView; 
+export default ManagerView;

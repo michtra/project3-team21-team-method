@@ -1,152 +1,315 @@
-import React, { useState } from 'react';
+// DrinkCustomizationModal.js
+import React, {useState, useEffect, useMemo} from 'react';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    Typography,
+    Box,
+    FormControl,
+    RadioGroup,
+    FormControlLabel,
+    Radio,
+    IconButton,
+    Grid,
+    Paper
+} from '@mui/material';
+import {
+    Close as CloseIcon,
+    Add as AddIcon,
+    Remove as RemoveIcon
+} from '@mui/icons-material';
+import ProductImage from './ProductImage';
 
-const toppingOptions = ['Boba', 'Herb Jelly', 'Lychee Jelly', 'Pudding', 'Ice Cream'];
-const percentageOptions = ['0%', '25%', '50%', '75%', '100%'];
+function DrinkCustomizationModal({product, onClose, onConfirm}) {
+    const [selectedSugar, setSelectedSugar] = useState('100%');
+    // initialize ice with numeric value for precise level control
+    const [selectedIce, setSelectedIce] = useState(0.5); // default to "Regular Ice" (0.5)
+    const [selectedToppings, setSelectedToppings] = useState({});
+    const [totalPrice, setTotalPrice] = useState(product?.product_cost || 0);
 
-function DrinkCustomizationModal({ product, onClose, onConfirm }) {
-  const [sugarLevel, setSugarLevel] = useState('100%');
-  const [iceLevel, setIceLevel] = useState('100%');
-  const [selectedToppings, setSelectedToppings] = useState({});
+    // predefined ice options with numeric values and display labels
+    const iceOptions = [
+        {value: 0, label: "No Ice"},
+        {value: 0.25, label: "Less Ice"},
+        {value: 0.5, label: "Regular Ice"},
+        {value: 0.75, label: "Extra Ice"}
+    ];
 
-  const handleToppingChange = (topping, amount) => {
-    setSelectedToppings(prev => ({
-      ...prev,
-      [topping]: amount
-    }));
-  };
+    const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
 
-  const handleConfirm = () => {
-    // filters 0% toppings from being included to the cart
-    const filteredToppings = Object.fromEntries(
-      Object.entries(selectedToppings).filter(([_, amount]) => amount !== '0%')
-    );
+    // available topping options with pricing
+    const toppingOptions = useMemo(() => [
+        {id: 'pearls', name: 'Boba Pearls', price: 0.75},
+        {id: 'jelly', name: 'Grass Jelly', price: 0.75},
+        {id: 'pudding', name: 'Pudding', price: 0.75},
+        {id: 'aloe', name: 'Aloe Vera', price: 0.75},
+        {id: 'red_bean', name: 'Red Bean', price: 0.75}
+    ], []);
 
-    const customizedProduct = {
-      id: product.product_id,
-      name: product.product_name,
-      price: product.product_cost,
-      customizations: {
-        sugar: sugarLevel,
-        ice: iceLevel,
-        toppings: filteredToppings
-      }
-      
+    // calculate total price when toppings or product changes
+    useEffect(() => {
+        // start with base product cost
+        let newTotal = product?.product_cost || 0;
+
+        // add topping prices
+        for (const [toppingId, quantity] of Object.entries(selectedToppings)) {
+            const topping = toppingOptions.find(t => t.id === toppingId);
+            if (topping && quantity > 0) {
+                newTotal += topping.price * quantity;
+            }
+        }
+
+        setTotalPrice(newTotal);
+    }, [selectedToppings, product, toppingOptions]);
+
+    const handleSugarChange = (event) => {
+        setSelectedSugar(event.target.value);
     };
 
-    // // ================ DEBUGGING ========================
-    // console.log("Sugar to be added:", sugarLevel);
-    // console.log("Ice to be added:", iceLevel);
-    // console.log("Toppings to be added:", selectedToppings);
+    const handleIceChange = (event) => {
+        // convert to number since radio values are strings by default
+        setSelectedIce(parseFloat(event.target.value));
+    };
 
-    onConfirm(customizedProduct);
-  };
+    const handleToppingChange = (toppingId, quantity) => {
+        setSelectedToppings(prev => {
+            // create a copy of the current toppings object
+            const updatedToppings = {...prev};
 
-  return (
-    <div className="modal-overlay" onClick={onClose} style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 999
-    }}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
-        background: 'white',
-        padding: '20px',
-        borderRadius: '10px',
-        minWidth: '350px'
-      }}>
-        <button className="close-btn" onClick={onClose} style={{ float: 'right' }}>X</button>
-        <h2>Customizing: "{product.product_name}"</h2>
+            // remove topping if quantity is 0 or less
+            if (quantity <= 0) {
+                delete updatedToppings[toppingId];
+            }
+            else {
+                // otherwise update the quantity
+                updatedToppings[toppingId] = quantity;
+            }
 
-        {/* SUGAR LEVEL */}
-        <div className="custom-row" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ fontWeight: 'bold', width: '120px' }}>Sugar Level</label>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
-            {percentageOptions.map(p => (
-              <button 
-                key={`sugar-${p}`} 
-                onClick={() => setSugarLevel(p)}
-                style={{
-                  backgroundColor: sugarLevel === p ? '#cceeff' : '',
-                  border: '1px solid #ccc',
-                  padding: '5px 10px',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
+            return updatedToppings;
+        });
+    };
 
-        {/* ICE LEVEL */}
-        <div className="custom-row" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ fontWeight: 'bold', width: '120px' }}>Ice Level</label>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
-            {percentageOptions.map(p => (
-              <button 
-                key={`ice-${p}`} 
-                onClick={() => setIceLevel(p)}
-                style={{
-                  backgroundColor: iceLevel === p ? '#cceeff' : '',
-                  border: '1px solid #ccc',
-                  padding: '5px 10px',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
+    const getToppingQuantity = (toppingId) => {
+        return selectedToppings[toppingId] || 0;
+    };
 
-        {/* TOPPINGS */}
-        <div className="custom-row">
-          {toppingOptions.map(topping => (
-            <div
-              key={topping}
-              style={{
+    const handleSubmit = () => {
+        const customizedProduct = {
+            product_id: product.product_id,
+            name: product.product_name,
+            price: totalPrice,
+            customizations: {
+                sugar: selectedSugar,
+                ice: selectedIce, // numeric value representing ice level
+                toppings: selectedToppings
+            },
+            categoryColor: product.categoryColor
+        };
+
+        onConfirm(customizedProduct);
+    };
+
+    // get human-readable label for ice level
+    const getIceLabelByValue = (value) => {
+        const option = iceOptions.find(opt => opt.value === value);
+        return option ? option.label : "Regular Ice";
+    };
+
+    return (
+        <Dialog
+            open={true}
+            onClose={onClose}
+            fullWidth
+            maxWidth="md"
+            PaperProps={{
+                sx: {
+                    borderRadius: 3,
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
+                }
+            }}
+        >
+            <DialogTitle sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '10px'
-              }}
-            >
-              <span style={{ fontWeight: 'bold', width: '120px' }}>{topping}</span>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
-                {['0%', '50%', '100%'].map(p => (
-                  <button
-                    key={`${topping}-${p}`}
-                    onClick={() => handleToppingChange(topping, p)}
-                    style={{
-                      backgroundColor: selectedToppings[topping] === p ? '#cceeff' : '',
-                      border: '1px solid #ccc',
-                      padding: '5px 10px',
-                      borderRadius: '5px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+                pb: 1
+            }}>
+                <Typography variant="h5" sx={{fontWeight: 600}}>
+                    Customize Your Drink
+                </Typography>
+                <IconButton onClick={onClose} size="large">
+                    <CloseIcon/>
+                </IconButton>
+            </DialogTitle>
 
+            <DialogContent dividers>
+                <Grid container spacing={3}>
+                    {/* Product Info Section */}
+                    <Grid item xs={12}>
+                        <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
+                            <Box sx={{
+                                width: 80,
+                                height: 80,
+                                mr: 2,
+                                borderRadius: 2,
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}>
+                                <ProductImage
+                                    productId={product.product_id}
+                                    productName={product.product_name}
+                                    categoryName="bubble tea"
+                                    height={80}
+                                />
+                            </Box>
+                            <Box>
+                                <Typography variant="h5" gutterBottom>
+                                    {product.product_name}
+                                </Typography>
+                                <Typography variant="h6" color="primary">
+                                    ${product.product_cost.toFixed(2)}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Grid>
 
+                    {/* Sugar Level Selection */}
+                    <Grid item xs={12} md={6}>
+                        <Paper variant="outlined" sx={{p: 2, height: '100%'}}>
+                            <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+                                Sugar Level
+                            </Typography>
+                            <FormControl component="fieldset">
+                                <RadioGroup value={selectedSugar} onChange={handleSugarChange}>
+                                    {sugarOptions.map((option) => (
+                                        <FormControlLabel
+                                            key={option}
+                                            value={option}
+                                            control={<Radio/>}
+                                            label={option}
+                                        />
+                                    ))}
+                                </RadioGroup>
+                            </FormControl>
+                        </Paper>
+                    </Grid>
 
-        <div className="modal-actions" style={{ marginTop: '20px' }}>
-          <button className="checkout-button checkout-button-primary" onClick={handleConfirm}>CONFIRM</button>
-          <button className="checkout-button checkout-button-secondary" onClick={onClose}>CANCEL</button>
-        </div>
-      </div>
-    </div>
-  );
+                    {/* Ice Level Selection */}
+                    <Grid item xs={12} md={6}>
+                        <Paper variant="outlined" sx={{p: 2, height: '100%'}}>
+                            <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+                                Ice Level
+                            </Typography>
+                            <FormControl component="fieldset">
+                                <RadioGroup
+                                    value={selectedIce.toString()}
+                                    onChange={handleIceChange}
+                                >
+                                    {iceOptions.map((option) => (
+                                        <FormControlLabel
+                                            key={option.value}
+                                            value={option.value.toString()}
+                                            control={<Radio/>}
+                                            label={option.label}
+                                        />
+                                    ))}
+                                </RadioGroup>
+                            </FormControl>
+                        </Paper>
+                    </Grid>
+
+                    {/* Toppings Selection */}
+                    <Grid item xs={12}>
+                        <Paper variant="outlined" sx={{p: 2}}>
+                            <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+                                Toppings
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" paragraph>
+                                Add extra toppings for $0.75 each
+                            </Typography>
+
+                            <Grid container spacing={2}>
+                                {toppingOptions.map((topping) => {
+                                    const quantity = getToppingQuantity(topping.id);
+
+                                    return (
+                                        <Grid item xs={12} sm={6} key={topping.id}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                p: 1,
+                                                borderRadius: 1,
+                                                bgcolor: quantity > 0 ? 'rgba(0, 0, 0, 0.04)' : 'transparent'
+                                            }}>
+                                                <Box>
+                                                    <Typography variant="body1">
+                                                        {topping.name}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        +${topping.price.toFixed(2)}
+                                                    </Typography>
+                                                </Box>
+
+                                                <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleToppingChange(topping.id, Math.max(0, quantity - 1))}
+                                                        disabled={quantity === 0}
+                                                    >
+                                                        <RemoveIcon fontSize="small"/>
+                                                    </IconButton>
+
+                                                    <Typography sx={{mx: 1, minWidth: 20, textAlign: 'center'}}>
+                                                        {quantity}
+                                                    </Typography>
+
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleToppingChange(topping.id, quantity + 1)}
+                                                    >
+                                                        <AddIcon fontSize="small"/>
+                                                    </IconButton>
+                                                </Box>
+                                            </Box>
+                                        </Grid>
+                                    );
+                                })}
+                            </Grid>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </DialogContent>
+
+            <DialogActions sx={{p: 2, justifyContent: 'space-between'}}>
+                <Box>
+                    <Typography variant="h5" color="primary" fontWeight={600}>
+                        Total: ${totalPrice.toFixed(2)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {product.product_name} • {selectedSugar} Sugar • {getIceLabelByValue(selectedIce)}
+                    </Typography>
+                </Box>
+
+                <Box>
+                    <Button onClick={onClose} sx={{mr: 1}}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit}
+                        size="large"
+                    >
+                        Add to Order
+                    </Button>
+                </Box>
+            </DialogActions>
+        </Dialog>
+    );
 }
 
 export default DrinkCustomizationModal;

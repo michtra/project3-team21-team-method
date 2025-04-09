@@ -65,6 +65,7 @@ This guide focuses on setting up the development environment. Production deploym
 - **Database not loading in frontend**: Check the browser console for errors
 - **Environment variables not updating**: Remember to restart the development server after changing any `.env` files
 - **JavaScript syntax errors**: Make sure you're using quotes instead of angle brackets in the `.env` files
+- **API giving 404:** Make sure you restart the backend after any changes.
 
 ### Starting the Application
 
