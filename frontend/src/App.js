@@ -3,14 +3,18 @@ import React, { useState } from 'react';
 import KioskView from './views/KioskView';
 import ManagerView from './views/ManagerView';
 
+import CashierView from './views/CashierViews';
+import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('main');
 
   const renderView = () => {
-    switch (currentView) {
+    switch(currentView) {
       case 'kiosk':
         return <KioskView />;
+      case 'cashier':
+        return <CashierView />;
       case 'manager':
         return <ManagerView />;
       default:
@@ -20,6 +24,7 @@ function App() {
             <div className="menu-buttons">
               <button onClick={() => setCurrentView('kiosk')}>Customer Kiosk</button>
               <button onClick={() => setCurrentView('manager')}>Manager View</button>
+              <button onClick={() => setCurrentView('cashier')}>Cashier System</button>
             </div>
           </div>
         );
