@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchProducts } from '../api';
+import DrinkCustomizationModal from '../components/DrinkCustomizationModal';
 
 function KioskView() {
   console.log("✅ KioskView rendered");
@@ -12,6 +13,15 @@ function KioskView() {
   const [cart, setCart] = useState([]);
   const [orderTotal, setOrderTotal] = useState({ subtotal: 0, tax: 0, total: 0 });
 
+  // Pop Up initialization
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const handleProductClick = (product) => {
+      setSelectedProduct(product);
+    };
+    const closePopup = () => {
+      setSelectedProduct(null);
+    };
+    
   const categories = [
     { id: 'all', name: 'All Items' },
     { id: 'milk_tea', name: 'Milk Tea' },
@@ -19,10 +29,10 @@ function KioskView() {
     { id: 'classic_tea', name: 'Classic Tea' },
   ];
 
-  const defaultCustomizations = {
-    ice: '100%',
-    topping: 'None'
-  };
+  // const defaultCustomizations = {
+  //   ice: '100%',
+  //   topping: 'None'
+  // };
 
   const calculateTotals = useCallback(() => {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -59,6 +69,7 @@ function KioskView() {
     setActiveCategory(categoryId);
   };
 
+  // Drink Categories 
   const getFilteredProducts = () => {
     let filtered = products;
 
@@ -73,6 +84,7 @@ function KioskView() {
       });
     }
 
+    // Search Bar Input
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(product => product.product_name?.toLowerCase().includes(query));
@@ -81,17 +93,17 @@ function KioskView() {
     return filtered;
   };
 
-  const addToCart = (product) => {
+  const addToCart = (customizedProduct) => {
     const cartItem = {
       id: Date.now(),
-      product_id: product.product_id,
-      name: product.product_name,
-      price: product.product_cost,
-      customizations: { ...defaultCustomizations },
+      product_id: customizedProduct.product_id,
+      name: customizedProduct.name || 'Unknown',
+      price: customizedProduct.price || 0,
+      customizations: customizedProduct.customizations || 'None',
       quantity: 1
     };
 
-    setCart([...cart, cartItem]);
+    setCart(prev => [...prev, cartItem]);
   };
 
   const removeFromCart = (cartItemId) => {
@@ -191,8 +203,8 @@ function KioskView() {
                 <div
                   key={product.product_id}
                   className="product-card"
-                  onClick={() => addToCart(product)}
-                >
+                  onClick={() => handleProductClick(product)}
+                  >
                   <div className="product-card-name">{product.product_name}</div>
                   <div className="product-card-price">${product.product_cost.toFixed(2)}</div>
                 </div>
@@ -202,6 +214,20 @@ function KioskView() {
             )}
           </div>
         </div>
+
+        {/* Pop Up Section */}
+        {selectedProduct && (
+            <DrinkCustomizationModal
+              product={selectedProduct}
+              onClose={closePopup}
+
+              onConfirm={(customizedProduct) => {
+                addToCart(customizedProduct); 
+                closePopup();
+              }}
+            />
+          )}
+
 
         <div className="order-summary">
           <h2 className="order-summary-header">Current Order</h2>
@@ -214,9 +240,13 @@ function KioskView() {
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-info">
                     <div className="cart-item-name">{item.name}</div>
-                    <div className="cart-item-customizations">
-                      Ice: {item.customizations.ice} • Topping: {item.customizations.topping}
-                    </div>
+                      <div className="cart-item-customizations">
+                        Sugar: {item.customizations.sugar} • Ice: {item.customizations.ice} • 
+                        Toppings: {Object.keys(item.customizations.toppings || {}).length > 0 
+                          ? Object.entries(item.customizations.toppings).map(([name, amount]) => 
+                              `${name} (${amount})`).join(', ')
+                          : 'None'}
+                      </div>
                   </div>
                   <div className="cart-item-price">${(item.price * item.quantity).toFixed(2)}</div>
                   <div className="cart-item-controls">
@@ -227,6 +257,7 @@ function KioskView() {
                   </div>
                 </div>
               ))}
+              
             </div>
           )}
 
