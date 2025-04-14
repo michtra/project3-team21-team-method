@@ -3,6 +3,7 @@
 // use the correct API based on local testing or VPS hosting
 const API_URL = process.env.REACT_APP_API_URL;
 const API_KEY = process.env.REACT_APP_API_KEY;
+const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 
 // Headers with API key
 const getHeaders = () => {
@@ -38,7 +39,12 @@ export const createTransaction = async (transactionData) => {
         });
 
         if (!response.ok) {
-            throw new Error("Network response was not ok");
+            let errorBody = null;
+            try {
+                 errorBody = await response.json();
+            } catch(e) { /* ignore parsing error */ }
+            const errorMessage = errorBody?.error || `Network response was not ok: ${response.status} ${response.statusText}`;
+            throw new Error(errorMessage);
         }
         return await response.json();
     }
@@ -57,10 +63,16 @@ export const fetchTransactions = async () => {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
-        return await response.json();
+        const transactions = await response.json();
+        if (transactions.length > 0 && transactions[0].customer_transaction_num !== undefined) {
+             // sort descending to get the latest first
+            return transactions.sort((a, b) => b.customer_transaction_num - a.customer_transaction_num);
+        }
+        return transactions;
+
     }
     catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching transactions:", error);
         throw error;
     }
 }
@@ -239,5 +251,34 @@ export const fetchSalesReport = async (startDate, endDate) => {
     catch (error) {
         console.error('Error fetching sales report data:', error);
         throw error;
+    }
+};
+
+
+/**
+ * Fetches current weather data from OpenWeatherMap.
+ * @param {string} city - The city name (e.g., 'Houston').
+ * @param {string} units - Units for temperature ('metric' for Celsius, 'imperial' for Fahrenheit).
+ * @returns {Promise<object>} - The weather data object.
+ */
+export const fetchWeather = async (city = 'Houston', units = 'imperial') => {
+    if (!OPENWEATHER_API_KEY) {
+        console.error("OpenWeatherMap API Key is missing. Please set REACT_APP_OPENWEATHER_API_KEY in your .env file.");
+        throw new Error("Weather API key not configured.");
+    }
+    try {
+        const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${OPENWEATHER_API_KEY}&units=${units}`;
+        const response = await fetch(weatherApiUrl);
+
+        if (!response.ok) {
+            const errorData = await response.json(); // OpenWeatherMap usually returns JSON errors
+            console.error("OpenWeatherMap API Error:", errorData);
+            throw new Error(`Weather API request failed: ${response.status} ${response.statusText} - ${errorData.message || 'Unknown error'}`);
+        }
+        return await response.json();
+    } catch (error) {
+        // catch both fetch errors and errors thrown above
+        console.error("Error fetching weather:", error);
+        throw new Error(error.message || "Could not fetch weather data.");
     }
 };

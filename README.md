@@ -50,13 +50,13 @@ This guide focuses on setting up the development environment. Production deploym
    npm i
    ```
 
-3. Create a `.env.development` file in the frontend directory with:
+3. Rename `.env.development.example` to `.env.development` in the frontend directory with:
    ```
    REACT_APP_API_URL=http://localhost:8080/api
+   REACT_APP_OPENWEATHER_API_KEY=<api key>
    ```
    
    ⚠️ **Important**:
-   - No API key is needed for development
    - If you make changes to any `.env` file, you must restart the React development server
    - Run `npm start` after any `.env` file changes as React does NOT automatically recompile
 
