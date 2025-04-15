@@ -19,7 +19,8 @@ import {
 import {
     Close as CloseIcon,
     Add as AddIcon,
-    Remove as RemoveIcon
+    Remove as RemoveIcon,
+    Warning as WarningIcon,
 } from '@mui/icons-material';
 import ProductImage from './ProductImage';
 
@@ -106,7 +107,8 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
                 ice: selectedIce, // numeric value representing ice level
                 toppings: selectedToppings
             },
-            categoryColor: product.categoryColor
+            categoryColor: product.categoryColor,
+            allergens: product.allergens
         };
 
         onConfirm(customizedProduct);
@@ -172,6 +174,12 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
                                 <Typography variant="h6" color="primary">
                                     ${product.product_cost.toFixed(2)}
                                 </Typography>
+                                {product.allergens && product.allergens !== 'None' && (
+                                    <Typography variant="body2" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <WarningIcon fontSize="small" />
+                                        Contains allergens: {product.allergens}
+                                    </Typography>
+                                )}
                             </Box>
                         </Box>
                     </Grid>

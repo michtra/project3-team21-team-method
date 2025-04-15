@@ -62,7 +62,7 @@ app.put('/api/products/:productId', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        const result = await pool.query('SELECT product_id, product_name, product_cost, product_type FROM product ORDER BY product_name ASC;');
+        const result = await pool.query('SELECT product_id, product_name, product_cost, product_type, allergens FROM product ORDER BY product_name ASC;');
         res.json(result.rows);
     }
     catch (err) {
@@ -72,16 +72,17 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-    const {product_name, product_cost, product_type} = req.body;
+    const {product_name, product_cost, product_type, allergens} = req.body;
     if (!product_name || typeof product_name !== 'string' || product_name.trim() === '') {
         return res.status(400).json({error: 'Invalid product input.'});
     }
     try {
         const result = await pool.query(
-            'INSERT INTO product (product_name, product_cost, product_type) VALUES ($1, $2, $3) RETURNING *;',
-            [product_name.trim(), product_cost, product_type]
+            'INSERT INTO product (product_name, product_cost, product_type, allergens) VALUES ($1, $2, $3, $4) RETURNING *;',
+            [product_name.trim(), product_cost, product_type, allergens || 'None']
         );
         res.status(201).json(result.rows[0]);
+        console.log("Products fetched:", result.rows);
     }
     catch (err) {
         console.error('Database error creating product:', err);
