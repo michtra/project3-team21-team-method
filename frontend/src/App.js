@@ -34,7 +34,6 @@ import {getAuthUrl, logout, getUserFromStorage} from './authService';
 function App() {
     const [currentView, setCurrentView] = useState('main');
     const [user, setUser] = useState(null);
-    const [setAnchorEl] = useState(null);
 
     // check for login on initial load
     useEffect(() => {
@@ -75,7 +74,6 @@ function App() {
         logout();
         setUser(null);
         setCurrentView('main');
-        setAnchorEl(null);
     };
 
     // navigation card data for main menu
