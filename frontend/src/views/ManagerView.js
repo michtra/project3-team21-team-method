@@ -13,13 +13,15 @@ import {
 import {
     Inventory as InventoryIcon,
     LocalCafe as ProductsIcon,
-    BarChart as ReportIcon
+    BarChart as ReportIcon,
+    AccountCircle as UserIcon
 } from '@mui/icons-material';
 import ManagerInventoryView from './ManagerInventoryView';
 import ManagerProductView from './ManagerProductView';
 import ManagerReportView from './ManagerReportView';
+import ManagerInfoView from './ManagerInfoView';
 
-const ManagerView = () => {
+const ManagerView = ({user}) => {
     const [activeTab, setActiveTab] = useState('inventory');
 
     const handleTabChange = (event, newTab) => {
@@ -34,6 +36,8 @@ const ManagerView = () => {
                 return <ManagerProductView/>;
             case 'report':
                 return <ManagerReportView/>;
+            case 'info':
+                return <ManagerInfoView user={user}/>;
             default:
                 return <ManagerInventoryView/>;
         }
@@ -92,6 +96,13 @@ const ManagerView = () => {
                             iconPosition="start"
                             label="Reports"
                             value="report"
+                            sx={{minHeight: 64}}
+                        />
+                        <Tab
+                            icon={<UserIcon/>}
+                            iconPosition="start"
+                            label="Manager Info"
+                            value="info"
                             sx={{minHeight: 64}}
                         />
                     </Tabs>

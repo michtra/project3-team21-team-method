@@ -1,5 +1,5 @@
 const express = require('express');
-const { Pool } = require('pg');
+const {Pool} = require('pg');
 // do not remove this line even if webstorm tells you to
 const dotenv = require('dotenv').config();
 const cors = require('cors'); // might be needed
@@ -228,38 +228,52 @@ app.get('/api/reports/x-report', async (req, res) => {
 // Z-Report endpoint
 app.get('/api/reports/z-report', async (req, res) => {
     try {
-        // daily sales total
+        // get the most recent business closure timestamp
+        const closureQuery = 'SELECT MAX(closure_date) FROM business_closure_log';
+        const closureResult = await pool.query(closureQuery);
+
+        let lastClosureTimestamp;
+        if (closureResult.rows[0].max) {
+            lastClosureTimestamp = closureResult.rows[0].max;
+        }
+        else {
+            // if no closure date found, use start of today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            lastClosureTimestamp = today;
+        }
+
+        // sales total since last business closure
         const salesQuery = `
             SELECT SUM(p.product_cost) AS total_sales
             FROM customer_transaction ct
                      JOIN product p ON ct.product_id = p.product_id
-            WHERE DATE (ct.purchase_date) = CURRENT_DATE
+            WHERE ct.purchase_date > $1
         `;
-        const salesResult = await pool.query(salesQuery);
+        const salesResult = await pool.query(salesQuery, [lastClosureTimestamp]);
         const totalSales = salesResult.rows[0].total_sales || 0;
 
-        // all of today's transactions
+        // all transactions since last business closure
         const transactionsQuery = `
             SELECT COUNT(*) AS total_orders
             FROM customer_transaction
-            WHERE DATE (purchase_date) = CURRENT_DATE
+            WHERE purchase_date > $1
         `;
-        const transactionsResult = await pool.query(transactionsQuery);
+        const transactionsResult = await pool.query(transactionsQuery, [lastClosureTimestamp]);
         const totalTransactions = parseInt(transactionsResult.rows[0].total_orders) || 0;
 
-        // today's most popular item
+        // most popular item since last business closure
         const topItemQuery = `
             SELECT p.product_name, COUNT(*) AS order_count
             FROM customer_transaction ct
                      JOIN product p ON ct.product_id = p.product_id
-            WHERE DATE (ct.purchase_date) = CURRENT_DATE
+            WHERE ct.purchase_date > $1
             GROUP BY p.product_name
-            ORDER BY order_count DESC
-                LIMIT 1
+            ORDER BY order_count DESC LIMIT 1
         `;
-        const topItemResult = await pool.query(topItemQuery);
+        const topItemResult = await pool.query(topItemQuery, [lastClosureTimestamp]);
 
-        let topItem = "No sales today";
+        let topItem = "No sales since last closure";
         let topItemCount = 0;
 
         if (topItemResult.rows.length > 0) {
@@ -535,6 +549,28 @@ async function getNextTransactionNumber() {
         return Date.now(); // fallback to timestamp if query fails
     }
 }
+
+// Business Closure endpoint
+app.post('/api/business/close', async (req, res) => {
+    try {
+        // add a new entry in the business_closure_log table
+        const query = `
+            INSERT INTO business_closure_log (closure_date)
+            VALUES (CURRENT_TIMESTAMP) RETURNING closure_date
+        `;
+        const result = await pool.query(query);
+
+        res.status(201).json({
+            success: true,
+            message: 'Business day closed successfully',
+            closure_date: result.rows[0].closure_date
+        });
+    }
+    catch (err) {
+        console.error('Error closing business day:', err);
+        res.status(500).json({error: 'Failed to close business day: ' + err.message});
+    }
+});
 
 // Start server
 app.listen(port, () => {

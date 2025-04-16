@@ -46,7 +46,7 @@ import {
     ShoppingCart as CartIcon
 } from '@mui/icons-material';
 
-function CashierView() {
+function CashierView({user}) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -66,8 +66,8 @@ function CashierView() {
     const [receiptDialog, setReceiptDialog] = useState(false);
     const [currentReceipt, setCurrentReceipt] = useState(null);
 
-    // employee information
-    const cashierName = useState('John Doe');
+    // Get employee name from user prop if available, otherwise use default
+    const cashierName = user ? user.name : 'John Doe';
 
     // pop up initialization
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -704,20 +704,28 @@ function CashierView() {
     const renderEmployeeTab = () => (
         <Container maxWidth="md" sx={{py: 4}}>
             <Paper elevation={3} sx={{p: 4, borderRadius: 2}}>
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 0}}>
+                <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
                     <Avatar
+                        src={user?.photo || ''}
                         sx={{
-                            width: 80,
-                            height: 80,
+                            width: 100,
+                            height: 100,
                             bgcolor: 'primary.main',
-                            mr: 3
+                            mr: 3,
+                            border: '4px solid',
+                            borderColor: 'primary.light'
                         }}
                     >
-                        <UserIcon sx={{fontSize: 40}}/>
+                        {!user?.photo && <UserIcon sx={{fontSize: 60}}/>}
                     </Avatar>
                     <Box>
                         <Typography variant="h4" gutterBottom>{cashierName}</Typography>
                         <Typography variant="subtitle1" color="text.secondary">Cashier</Typography>
+                        {user?.email && (
+                            <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>
+                                {user.email}
+                            </Typography>
+                        )}
                     </Box>
                 </Box>
             </Paper>
@@ -728,15 +736,17 @@ function CashierView() {
         <Box sx={{flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column'}}>
             <AppBar position="static" color="primary" elevation={0}>
                 <Toolbar sx={{justifyContent: 'center', position: 'relative'}}>
-                    <Typography variant="h5" component="h1"
-                                sx={{position: 'absolute', left: '50%', transform: 'translateX(-50%)'}}>
+                    <Typography variant="h5" component="h1">
                         Sharetea Cashier System
                     </Typography>
-                    <Box sx={{position: 'absolute', right: 24, display: 'flex', alignItems: 'center'}}>
-                        <CartIcon sx={{mr: 1}}/>
-                        <Typography variant="body1">
-                            {cart.length} item{cart.length !== 1 ? 's' : ''}
-                        </Typography>
+
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                        <Box sx={{position: 'absolute', right: 24, display: 'flex', alignItems: 'center'}}>
+                            <CartIcon sx={{mr: 1}}/>
+                            <Typography variant="body1">
+                                {cart.length} item{cart.length !== 1 ? 's' : ''}
+                            </Typography>
+                        </Box>
                     </Box>
                 </Toolbar>
 

@@ -113,7 +113,6 @@ function MenuBoardView() {
                         mb: 6,
                         borderRadius: 3,
                         bgcolor: 'background.paper',
-                        backgroundImage: 'linear-gradient(120deg, #33333f, #141422)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center'

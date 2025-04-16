@@ -50,10 +50,11 @@ This guide focuses on setting up the development environment. Production deploym
    npm i
    ```
 
-3. Rename `.env.development.example` to `.env.development` in the frontend directory with:
+3. Copy `.env.development.example` to `.env.development` in the frontend directory with:
    ```
    REACT_APP_API_URL=http://localhost:8080/api
-   REACT_APP_OPENWEATHER_API_KEY=<api key>
+   REACT_APP_OPENWEATHER_API_KEY='your_api_key_here'
+   REACT_APP_GOOGLE_CLIENT_ID='your_client_id_here'
    ```
    
    ⚠️ **Important**:
@@ -114,7 +115,9 @@ API_MASTER_KEY="accepted api key"
 - **.env.production:**
 ```
 REACT_APP_API_URL=http://domain.com/api
-REACT_APP_API_KEY="api key"
+REACT_APP_API_KEY='your_api_key_here'
+REACT_APP_OPENWEATHER_API_KEY='your_api_key_here'
+REACT_APP_GOOGLE_CLIENT_ID='your_client_id_here'
 ```
 
 ### VPS Deployment

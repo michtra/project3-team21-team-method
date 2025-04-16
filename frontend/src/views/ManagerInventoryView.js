@@ -59,6 +59,7 @@ const ManagerInventoryView = () => {
     // initial load
     useEffect(() => {
         loadInventory();
+        // eslint-disable-next-line
     }, []);
 
     const handleOpenAddModal = () => {

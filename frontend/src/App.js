@@ -1,5 +1,5 @@
-// App.js
-import React, {useState} from 'react';
+// App.js (Simplified)
+import React, {useState, useEffect} from 'react';
 import {ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
@@ -10,52 +10,97 @@ import {
     Grid,
     Card,
     CardContent,
-    CardActionArea
+    CardActionArea,
 } from '@mui/material';
 import {
     LocalCafe as CoffeeIcon,
     MenuBook as MenuIcon,
     SupervisorAccount as ManagerIcon,
     ShoppingCart as CartIcon,
-    ArrowBack as BackIcon
+    ArrowBack as BackIcon,
+    Login as LoginIcon,
+    Logout as LogoutIcon
 } from '@mui/icons-material';
 
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import theme from './theme';
 import KioskView from './views/KioskView';
 import ManagerView from './views/ManagerView';
 import CashierView from './views/CashierViews';
 import MenuBoardView from './views/MenuBoardView';
+import OAuthCallback from './OAuthCallback';
+import {getAuthUrl, logout, getUserFromStorage} from './authService';
 
 function App() {
     const [currentView, setCurrentView] = useState('main');
+    const [user, setUser] = useState(null);
+    const [setAnchorEl] = useState(null);
+
+    // check for login on initial load
+    useEffect(() => {
+        const storedUser = getUserFromStorage();
+        if (storedUser) {
+            setUser(storedUser);
+        }
+    }, []);
+
+    // use a listener to detect when localStorage/sessionStorage changes
+    // avoid logging in twice :P
+    useEffect(() => {
+        function handleStorageChange() {
+            const storedUser = getUserFromStorage();
+            if (storedUser && !user) {
+                setUser(storedUser);
+            }
+        }
+
+        window.addEventListener('storage', handleStorageChange);
+
+        // interval to check for changes (backup)
+        const checkInterval = setInterval(handleStorageChange, 0);
+
+        // cleanup
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            clearInterval(checkInterval);
+        };
+    }, [user]);
+
+    const handleLogin = () => {
+        // redirect to Google OAuth login
+        window.location.href = getAuthUrl();
+    };
+
+    const handleLogout = () => {
+        logout();
+        setUser(null);
+        setCurrentView('main');
+        setAnchorEl(null);
+    };
 
     // navigation card data for main menu
     const navigationCards = [
         {
             id: 'kiosk',
             title: 'Customer Kiosk',
-            description: 'Self-service ordering system for customers',
             icon: <CoffeeIcon fontSize="large"/>,
             color: theme.palette.primary.main
         },
         {
             id: 'menuBoard',
             title: 'Menu Board',
-            description: 'Digital menu display for store front',
             icon: <MenuIcon fontSize="large"/>,
-            color: theme.palette.secondary.main
+            color: theme.palette.secondary.light
         },
         {
             id: 'manager',
             title: 'Manager Dashboard',
-            description: 'Inventory and product management system',
             icon: <ManagerIcon fontSize="large"/>,
             color: theme.palette.warning.main
         },
         {
             id: 'cashier',
             title: 'Cashier System',
-            description: 'Point of sale system for staff',
             icon: <CartIcon fontSize="large"/>,
             color: theme.palette.success.main
         }
@@ -83,101 +128,157 @@ function App() {
                             mb: 2
                         }}
                     >
-                        Sharetea POS System
+                        Method POS System
                     </Typography>
-                    <Typography
-                        variant="h5"
-                        color="text.secondary"
-                        sx={{
+
+                    {!user ? (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<LoginIcon/>}
+                            onClick={handleLogin}
+                        >
+                            Log in with Google
+                        </Button>
+                    ) : (
+                        <Box sx={{
                             mb: 4,
-                            maxWidth: 600,
-                            mx: 'auto'
-                        }}
-                    >
-                        Select a module to continue.
-                    </Typography>
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Typography variant="body1">
+                                Welcome, {user.name}.
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<LogoutIcon/>}
+                                onClick={handleLogout}
+                                size="small"
+                                sx={{mt: 2}}
+                            >
+                                Logout
+                            </Button>
+                        </Box>
+                    )}
                 </Box>
 
-                {/* Menu cards grid */}
+                {/* Menu cards grid - Modified to 2x2 layout */}
                 <Grid
                     container
-                    spacing={3}
+                    spacing={4}
                     justifyContent="center"
                     sx={{
-                        maxWidth: 1200,
-                        mx: 'auto'
+                        maxWidth: 800,
+                        mx: 'auto',
+                        px: 2
                     }}
                 >
                     {navigationCards.map((card) => (
-                        <Grid item key={card.id} xs={12} sm={6} md={6} lg={3}>
-                            <Card
-                                elevation={4}
-                                sx={{
-                                    height: '100%',
-                                    borderRadius: 3,
-                                    transition: 'all 0.3s',
-                                    '&:hover': {
-                                        transform: 'translateY(-8px)',
-                                        boxShadow: 8
-                                    }
-                                }}
-                            >
-                                <CardActionArea
-                                    onClick={() => setCurrentView(card.id)}
+                        <Grid item key={card.id} xs={12} sm={6} md={6} lg={6} sx={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}>
+                            <Box sx={{
+                                width: 300,
+                                height: 300,
+                                position: 'relative'
+                            }}>
+                                <Card
+                                    elevation={4}
                                     sx={{
-                                        height: '100%',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: 300,
+                                        height: 300,
+                                        borderRadius: 3,
+                                        transition: 'all 0.3s',
                                         display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        p: 3
+                                        '&:hover': {
+                                            transform: 'translateY(-8px)',
+                                            boxShadow: 8
+                                        }
                                     }}
                                 >
-                                    {/* Icon circle */}
-                                    <Box
+                                    <CardActionArea
+                                        onClick={() => setCurrentView(card.id)}
                                         sx={{
-                                            width: 80,
-                                            height: 80,
-                                            borderRadius: '50%',
+                                            height: '100%',
+                                            width: '100%',
                                             display: 'flex',
+                                            flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            bgcolor: `${card.color}20`,
-                                            color: card.color,
-                                            mb: 2,
-                                            transition: 'all 0.3s',
-                                            '& svg': {fontSize: 40},
-                                            '.MuiCardActionArea-root:hover &': {
-                                                bgcolor: card.color,
-                                                color: 'white',
-                                                transform: 'scale(1.1)'
-                                            }
+                                            p: 3
                                         }}
                                     >
-                                        {card.icon}
-                                    </Box>
-
-                                    {/* Card content */}
-                                    <CardContent sx={{textAlign: 'center', flexGrow: 1}}>
-                                        <Typography
-                                            variant="h5"
-                                            component="h2"
-                                            gutterBottom
+                                        {/* Icon circle */}
+                                        <Box
                                             sx={{
-                                                fontWeight: 600,
-                                                color: 'text.primary'
+                                                width: 100,
+                                                height: 100,
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                bgcolor: `${card.color}20`,
+                                                color: card.color,
+                                                mb: 3,
+                                                transition: 'all 0.3s',
+                                                '& svg': {fontSize: 50},
+                                                '.MuiCardActionArea-root:hover &': {
+                                                    bgcolor: card.color,
+                                                    color: 'white',
+                                                    transform: 'scale(1.1)'
+                                                }
                                             }}
                                         >
-                                            {card.title}
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            {card.description}
-                                        </Typography>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
+                                            {card.icon}
+                                        </Box>
+
+                                        {/* Card content - Enhanced typography */}
+                                        <CardContent sx={{
+                                            textAlign: 'center',
+                                            width: '100%',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            flexGrow: 0,
+                                            padding: 0
+                                        }}>
+                                            <Typography
+                                                variant="h5"
+                                                component="h2"
+                                                gutterBottom
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    color: 'text.primary',
+                                                    mb: 2
+                                                }}
+                                            >
+                                                {card.title}
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    fontSize: '1rem',
+                                                    maxHeight: '3rem',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical'
+                                                }}
+                                            >
+                                                {card.description}
+                                            </Typography>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Box>
                         </Grid>
                     ))}
                 </Grid>
@@ -201,43 +302,59 @@ function App() {
             case 'menuBoard':
                 return <MenuBoardView/>;
             case 'cashier':
-                return <CashierView/>;
+                return <CashierView user={user}/>;
             case 'manager':
-                return <ManagerView/>;
+                return <ManagerView user={user}/>;
             default:
                 return renderMainMenu();
         }
     };
 
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline/>
-            <Box sx={{
-                minHeight: '100vh',
-                bgcolor: 'background.default',
-                position: 'relative'
-            }}>
-                {currentView !== 'main' && (
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<BackIcon/>}
-                        onClick={() => setCurrentView('main')}
-                        sx={{
+        <Router>
+            <ThemeProvider theme={theme}>
+                <CssBaseline/>
+                <Box sx={{
+                    minHeight: '100vh',
+                    bgcolor: 'background.default',
+                    position: 'relative'
+                }}>
+                    {/* Top Bar with Back button and User Menu */}
+                    {currentView !== 'main' && (
+                        <Box sx={{
                             position: 'absolute',
                             top: 16,
                             left: 16,
+                            right: 16,
                             zIndex: 10,
-                            borderRadius: 8,
-                            px: 2
-                        }}
-                    >
-                        Back to Main Menu
-                    </Button>
-                )}
-                {renderView()}
-            </Box>
-        </ThemeProvider>
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<BackIcon/>}
+                                onClick={() => setCurrentView('main')}
+                                sx={{
+                                    borderRadius: 8,
+                                    px: 2
+                                }}
+                            >
+                                Back to Main Menu
+                            </Button>
+                        </Box>
+                    )}
+
+                    <Routes>
+                        <Route
+                            path="/oauth2callback"
+                            element={<OAuthCallback/>}
+                        />
+                        <Route path="*" element={renderView()}/>
+                    </Routes>
+                </Box>
+            </ThemeProvider>
+        </Router>
     );
 }
 

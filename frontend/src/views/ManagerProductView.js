@@ -74,6 +74,7 @@ const ManagerProductView = () => {
     // initial load
     useEffect(() => {
         loadProducts();
+        // eslint-disable-next-line
     }, []);
 
     const handleInputChange = (e) => {

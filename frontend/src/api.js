@@ -41,8 +41,10 @@ export const createTransaction = async (transactionData) => {
         if (!response.ok) {
             let errorBody = null;
             try {
-                 errorBody = await response.json();
-            } catch(e) { /* ignore parsing error */ }
+                errorBody = await response.json();
+            }
+            catch (e) { /* ignore parsing error */
+            }
             const errorMessage = errorBody?.error || `Network response was not ok: ${response.status} ${response.statusText}`;
             throw new Error(errorMessage);
         }
@@ -65,7 +67,7 @@ export const fetchTransactions = async () => {
         }
         const transactions = await response.json();
         if (transactions.length > 0 && transactions[0].customer_transaction_num !== undefined) {
-             // sort descending to get the latest first
+            // sort descending to get the latest first
             return transactions.sort((a, b) => b.customer_transaction_num - a.customer_transaction_num);
         }
         return transactions;
@@ -276,9 +278,27 @@ export const fetchWeather = async (city = 'Houston', units = 'imperial') => {
             throw new Error(`Weather API request failed: ${response.status} ${response.statusText} - ${errorData.message || 'Unknown error'}`);
         }
         return await response.json();
-    } catch (error) {
+    }
+    catch (error) {
         // catch both fetch errors and errors thrown above
         console.error("Error fetching weather:", error);
         throw new Error(error.message || "Could not fetch weather data.");
+    }
+};
+
+export const closeBusinessDay = async () => {
+    try {
+        const response = await fetch(`${API_URL}/business/close`, {
+            method: 'POST',
+            headers: getHeaders(),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to close business day');
+        }
+        return await response.json();
+    }
+    catch (error) {
+        console.error('Error closing business day:', error);
+        throw error;
     }
 };

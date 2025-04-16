@@ -1,38 +1,39 @@
 // ManagerReportView.js
 import React, {useState} from 'react';
 import {
+    Alert,
     Box,
-    Grid,
-    Typography,
-    Paper,
-    Card,
-    CardContent,
-    CardActionArea,
-    Divider,
-    TextField,
     Button,
+    Card,
+    CardActionArea,
+    CardContent,
+    CircularProgress,
+    Divider,
+    Grid,
+    Paper,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    CircularProgress,
-    Alert
+    TextField,
+    Typography
 } from '@mui/material';
 import {
     Assessment as XReportIcon,
     Receipt as ZReportIcon,
-    Timeline as UsageChartIcon,
     ShowChart as SalesIcon,
+    Timeline as UsageChartIcon,
 } from '@mui/icons-material';
 
 // import API functions from api.js
 import {
-    fetchXReport as apiFetchXReport,
-    fetchZReport as apiFetchZReport,
+    closeBusinessDay as apiCloseBusinessDay,
     fetchInventoryUsage as apiFetchInventoryUsage,
-    fetchSalesReport as apiFetchSalesReport
+    fetchSalesReport as apiFetchSalesReport,
+    fetchXReport as apiFetchXReport,
+    fetchZReport as apiFetchZReport
 } from '../api';
 
 // improved API functions with better error handling
@@ -41,18 +42,19 @@ const fetchXReport = async () => {
         return await apiFetchXReport();
     }
     catch (error) {
-        console.warn('Using simulated X-report data due to error:', error);
-        return generateXReportData();
+        console.error('Error fetching X-report:', error);
+        throw error;
     }
 };
 
+// Z-Report
 const fetchZReport = async () => {
     try {
         return await apiFetchZReport();
     }
     catch (error) {
-        console.warn('Using simulated Z-report data due to error:', error);
-        return generateZReportData();
+        console.error('Error fetching Z-report:', error);
+        throw error;
     }
 };
 
@@ -62,8 +64,8 @@ const fetchInventoryUsage = async (startDate, endDate) => {
         return await apiFetchInventoryUsage(startDate, endDate);
     }
     catch (error) {
-        console.warn('Using simulated inventory usage data due to error:', error);
-        return generateInventoryUsageData();
+        console.error('Error fetching inventory usage data:', error);
+        throw error;
     }
 };
 
@@ -73,96 +75,9 @@ const fetchSalesReport = async (startDate, endDate) => {
         return await apiFetchSalesReport(startDate, endDate);
     }
     catch (error) {
-        console.warn('Using simulated sales report data due to error:', error);
-        return generateSalesReportData();
+        console.error('Error fetching sales report data:', error);
+        throw error;
     }
-};
-
-// fallback data for X-Report
-const generateXReportData = () => {
-    const hours = [];
-    let totalOrders = 0;
-    let totalSales = 0;
-
-    for (let i = 9; i <= 21; i++) {
-        const orderCount = Math.floor(Math.random() * 20) + 1;
-        const salesTotal = (Math.random() * 100 + 50).toFixed(2);
-        const avgSale = (parseFloat(salesTotal) / orderCount).toFixed(2);
-
-        totalOrders += orderCount;
-        totalSales += parseFloat(salesTotal);
-
-        const hourDisplay = formatHourDisplay(i);
-
-        hours.push({
-            hour: hourDisplay,
-            orderCount,
-            salesTotal: `$${salesTotal}`,
-            avgSale: `$${avgSale}`
-        });
-    }
-
-    return {
-        hours,
-        totalOrders,
-        totalSales: totalSales.toFixed(2)
-    };
-};
-
-const formatHourDisplay = (hour) => {
-    const amPm = hour < 12 ? "AM" : "PM";
-    // adjust for CDT
-    const displayHour = hour % 12 - 6;
-    return `${displayHour === 0 ? 12 : displayHour}:00 ${amPm}`;
-};
-
-const generateZReportData = () => {
-    const totalSales = (Math.random() * 1000 + 500).toFixed(2);
-    const totalTransactions = Math.floor(Math.random() * 100) + 50;
-
-    return {
-        totalSales: totalSales,
-        totalTransactions: totalTransactions,
-        topItem: "Classic Milk Tea",
-        topItemCount: Math.floor(Math.random() * 30) + 10
-    };
-};
-
-const generateInventoryUsageData = () => {
-    return [
-        {itemId: 1, itemName: "Milk", initialStock: 100, currentStock: 35, used: 65, usagePercentage: 65},
-        {itemId: 2, itemName: "Black Tea", initialStock: 50, currentStock: 18, used: 32, usagePercentage: 64},
-        {itemId: 3, itemName: "Green Tea", initialStock: 40, currentStock: 22, used: 18, usagePercentage: 45},
-        {itemId: 4, itemName: "Tapioca Pearls", initialStock: 80, currentStock: 32, used: 48, usagePercentage: 60},
-        {itemId: 5, itemName: "Brown Sugar", initialStock: 40, currentStock: 15, used: 25, usagePercentage: 63},
-        {itemId: 6, itemName: "Strawberry Syrup", initialStock: 30, currentStock: 12, used: 18, usagePercentage: 60},
-        {itemId: 7, itemName: "Mango Syrup", initialStock: 25, currentStock: 8, used: 17, usagePercentage: 68}
-    ];
-};
-
-const generateSalesReportData = () => {
-    return [
-        {productId: 1, productName: "Classic Milk Tea", productType: "Milk Tea", totalCost: 273.00, quantitySold: 42},
-        {
-            productId: 2,
-            productName: "Brown Sugar Milk Tea",
-            productType: "Milk Tea",
-            totalCost: 266.00,
-            quantitySold: 38
-        },
-        {productId: 3, productName: "Mango Green Tea", productType: "Fruit Tea", totalCost: 175.50, quantitySold: 27},
-        {productId: 4, productName: "Taro Milk Tea", productType: "Milk Tea", totalCost: 224.00, quantitySold: 32},
-        {
-            productId: 5,
-            productName: "Strawberry Fruit Tea",
-            productType: "Fruit Tea",
-            totalCost: 162.50,
-            quantitySold: 25
-        },
-        {productId: 6, productName: "Matcha Latte", productType: "Latte", totalCost: 135.00, quantitySold: 18},
-        {productId: 7, productName: "Honey Green Tea", productType: "Green Tea", totalCost: 97.50, quantitySold: 15},
-        {productId: 8, productName: "Thai Milk Tea", productType: "Milk Tea", totalCost: 161.00, quantitySold: 23}
-    ];
 };
 
 const formatDateToString = (date) => {
@@ -248,6 +163,13 @@ const ManagerReportView = () => {
             color: '#4caf50', // success green
         },
         {
+            id: 'sales_report',
+            title: 'Sales Report',
+            description: 'Sales breakdown by item for a specified period',
+            icon: <SalesIcon fontSize="large"/>,
+            color: '#009688', // teal
+        },
+        {
             id: 'x_report',
             title: 'X-Report',
             description: 'View sales data since last Z-Report',
@@ -257,16 +179,9 @@ const ManagerReportView = () => {
         {
             id: 'z_report',
             title: 'Z-Report',
-            description: 'Daily closing report with sales totals',
+            description: 'Sales totals since last business closure',
             icon: <ZReportIcon fontSize="large"/>,
             color: '#ff9800', // warning orange
-        },
-        {
-            id: 'sales_report',
-            title: 'Sales Report',
-            description: 'Sales breakdown by item for a specified period',
-            icon: <SalesIcon fontSize="large"/>,
-            color: '#009688', // teal
         }
     ];
 
@@ -302,7 +217,35 @@ const ManagerReportView = () => {
 
         // refresh the report with new date range
         if (activeReport) {
-            generateReport(activeReport, newStartDate, newEndDate);
+            generateReport(activeReport, newStartDate, newEndDate).then();
+        }
+    };
+
+    // handles closing business functionality for Z-Report
+    const handleCloseRegister = async () => {
+        if (!zReportData) return;
+
+        // confirm with the user before closing business
+        if (window.confirm("Are you sure you want to close the business day? This will generate a Z-Report and reset the X-Report data.")) {
+            try {
+                setLoading(true);
+
+                // call the API endpoint to close the business
+                await apiCloseBusinessDay();
+
+                // refresh both reports to get updated data
+                const freshZReport = await fetchZReport();
+                const freshXReport = await fetchXReport();
+
+                setZReportData(freshZReport);
+                setXReportData(freshXReport);
+                setLoading(false);
+                alert("Business day successfully closed.");
+            }
+            catch (err) {
+                setError("Failed to close business day: " + err.message);
+                setLoading(false);
+            }
         }
     };
 
@@ -321,8 +264,7 @@ const ManagerReportView = () => {
                     }
                     catch (err) {
                         console.error('Failed to get X-report data:', err);
-                        setError('Could not load X-report. Using simulated data.');
-                        setXReportData(generateXReportData());
+                        setError('Could not load X-report: ' + err.message);
                     }
                     break;
                 case 'z_report':
@@ -332,8 +274,7 @@ const ManagerReportView = () => {
                     }
                     catch (err) {
                         console.error('Failed to get Z-report data:', err);
-                        setError('Could not load Z-report. Using simulated data.');
-                        setZReportData(generateZReportData());
+                        setError('Could not load Z-report: ' + err.message);
                     }
                     break;
                 case 'usage_chart':
@@ -351,8 +292,7 @@ const ManagerReportView = () => {
                     }
                     catch (err) {
                         console.error('Failed to get inventory usage data:', err);
-                        setError('Could not load inventory usage data. Using simulated data.');
-                        setUsageData(generateInventoryUsageData());
+                        setError('Could not load inventory usage data: ' + err.message);
                     }
                     break;
                 case 'sales_report':
@@ -370,8 +310,7 @@ const ManagerReportView = () => {
                     }
                     catch (err) {
                         console.error('Failed to get sales report data:', err);
-                        setError('Could not load sales data. Using simulated data.');
-                        setSalesData(generateSalesReportData());
+                        setError('Could not load sales data: ' + err.message);
                     }
                     break;
                 default:
@@ -398,7 +337,7 @@ const ManagerReportView = () => {
 
         if (error) {
             return (
-                <Alert severity="warning" sx={{mt: 4}}>
+                <Alert severity="error" sx={{mt: 4}}>
                     {error}
                 </Alert>
             );
@@ -494,10 +433,6 @@ const ManagerReportView = () => {
                         </Grid>
                     </Grid>
                 </Box>
-
-                <Box sx={{mt: 3, display: 'flex', justifyContent: 'flex-end'}}>
-                    <Button variant="outlined">Print Report</Button>
-                </Box>
             </Paper>
         );
     };
@@ -506,11 +441,16 @@ const ManagerReportView = () => {
     const renderZReport = () => {
         if (!zReportData) return null;
 
+        // calculate average transaction
+        const avgTransaction = zReportData.totalTransactions > 0 ?
+            (parseFloat(zReportData.totalSales) / zReportData.totalTransactions).toFixed(2) :
+            '0.00';
+
         return (
             <Paper sx={{p: 3, mt: 3}}>
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                     <div>
-                        <Typography variant="h5" gutterBottom>Z Report - Daily Closing</Typography>
+                        <Typography variant="h5" gutterBottom>Z Report - Since Last Business Closure</Typography>
                         <Typography variant="subtitle1" color="text.secondary">
                             {new Date().toLocaleDateString('en-US', {
                                 weekday: 'long',
@@ -520,23 +460,14 @@ const ManagerReportView = () => {
                             })}
                         </Typography>
                     </div>
-                    <Typography variant="h6" sx={{
-                        p: 1,
-                        px: 2,
-                        bgcolor: 'error.main',
-                        color: 'white',
-                        borderRadius: 1
-                    }}>
-                        CLOSING REPORT
-                    </Typography>
                 </Box>
 
                 <Divider sx={{my: 3}}/>
 
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                        <Paper variant="outlined" sx={{p: 2}}>
-                            <Typography variant="h6" gutterBottom>Sales Summary</Typography>
+                <Grid container spacing={3} justifyContent="center">
+                    <Grid item xs={12} md={6} sx={{display: 'flex', justifyContent: 'center'}}>
+                        <Paper variant="outlined" sx={{p: 2, width: '100%', maxWidth: '500px'}}>
+                            <Typography variant="h6" gutterBottom align="center">Sales Summary</Typography>
                             <Box sx={{mt: 2}}>
                                 <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
                                     <Typography>Total Sales</Typography>
@@ -549,14 +480,16 @@ const ManagerReportView = () => {
                                 <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
                                     <Typography>Average Transaction</Typography>
                                     <Typography variant="h6">
-                                        ${(parseFloat(zReportData.totalSales) / zReportData.totalTransactions || 0).toFixed(2)}
+                                        ${avgTransaction}
                                     </Typography>
                                 </Box>
                                 <Divider sx={{my: 2}}/>
                                 <Box sx={{display: 'flex', justifyContent: 'space-between'}}>
                                     <Typography>Most Sold Item</Typography>
-                                    <Typography variant="h7">
-                                        {zReportData.topItem} ({zReportData.topItemCount})
+                                    <Typography sx={{textAlign: 'right', ml: 2}}>
+                                        {zReportData.topItem ?
+                                            `${zReportData.topItem} (${zReportData.topItemCount} orders)` :
+                                            "No sales today"}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -564,9 +497,15 @@ const ManagerReportView = () => {
                     </Grid>
                 </Grid>
 
-                <Box sx={{mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2}}>
-                    <Button variant="outlined">Print Report</Button>
-                    <Button variant="contained" color="error">Close Register</Button>
+                <Box sx={{mt: 4, display: 'flex', justifyContent: 'center', gap: 2}}>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleCloseRegister}
+                        disabled={loading}
+                    >
+                        {loading ? 'Processing...' : 'Close Business Day'}
+                    </Button>
                 </Box>
             </Paper>
         );
@@ -645,10 +584,6 @@ const ManagerReportView = () => {
                         Report
                         Period: {formatDateForDisplay(dateRange.startDate)} - {formatDateForDisplay(dateRange.endDate)}
                     </Typography>
-                    <Box sx={{display: 'flex', gap: 2}}>
-                        <Button variant="outlined">Print Report</Button>
-                        <Button variant="outlined">Export to CSV</Button>
-                    </Box>
                 </Box>
             </Paper>
         );
@@ -660,7 +595,7 @@ const ManagerReportView = () => {
 
         // calculate totals
         const totalQuantity = salesData.reduce((acc, item) =>
-            acc + (item.quantitySold || item.quantity_sold || 0), 0);
+            acc + (Number(item.quantitySold || item.quantity_sold) || 0), 0);
 
         const totalSales = salesData.reduce((acc, item) =>
             acc + (item.totalCost || item.total_cost || 0), 0);
@@ -706,7 +641,6 @@ const ManagerReportView = () => {
                                 <TableCell>Product Type</TableCell>
                                 <TableCell align="right">Quantity Sold</TableCell>
                                 <TableCell align="right">Sales Amount</TableCell>
-                                <TableCell align="right">% of Total</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -720,9 +654,6 @@ const ManagerReportView = () => {
                                         <TableCell>{item.productType || item.product_type}</TableCell>
                                         <TableCell align="right">{quantity}</TableCell>
                                         <TableCell align="right">${salesAmount.toFixed(2)}</TableCell>
-                                        <TableCell align="right">
-                                            {((salesAmount / totalSales) * 100).toFixed(1)}%
-                                        </TableCell>
                                     </TableRow>
                                 );
                             })}
@@ -738,9 +669,6 @@ const ManagerReportView = () => {
                                 <TableCell align="right">
                                     <Typography fontWeight="bold">${totalSales.toFixed(2)}</Typography>
                                 </TableCell>
-                                <TableCell align="right">
-                                    <Typography fontWeight="bold">100%</Typography>
-                                </TableCell>
                             </TableRow>
                         </TableHead>
                     </Table>
@@ -751,10 +679,6 @@ const ManagerReportView = () => {
                         Report
                         Period: {formatDateForDisplay(dateRange.startDate)} - {formatDateForDisplay(dateRange.endDate)}
                     </Typography>
-                    <Box sx={{display: 'flex', gap: 2}}>
-                        <Button variant="outlined">Print Report</Button>
-                        <Button variant="outlined">Export to CSV</Button>
-                    </Box>
                 </Box>
             </Paper>
         );
