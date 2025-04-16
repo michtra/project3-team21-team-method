@@ -437,6 +437,8 @@ function KioskView() {
                         color: 'white',
                         bgcolor: 'rgba(0, 0, 0, 0.2)',
                         transition: 'background-color 0.3s',
+                        zIndex: 2, // Ensure button is above the back button
+                        pointerEvents: 'auto', // Make sure clicks register 
                         '&:hover': {
                             bgcolor: 'rgba(0, 0, 0, 0.4)',
                         }
@@ -458,6 +460,8 @@ function KioskView() {
                         color: 'white',
                         bgcolor: 'rgba(0, 0, 0, 0.2)',
                         transition: 'background-color 0.3s',
+                        zIndex: 2, // Ensure button is above the back button
+                        pointerEvents: 'auto', // Make sure clicks register
                         '&:hover': {
                             bgcolor: 'rgba(0, 0, 0, 0.4)',
                         }

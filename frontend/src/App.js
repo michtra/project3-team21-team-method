@@ -325,10 +325,9 @@ function App() {
                             position: 'absolute',
                             top: 16,
                             left: 16,
-                            right: 16,
-                            zIndex: 10,
-                            display: 'flex',
-                            justifyContent: 'space-between'
+                            width: 'auto', // Only take width needed for button
+                            zIndex: 1,
+                            pointerEvents: 'auto' // Ensure clicks register correctly
                         }}>
                             <Button
                                 variant="contained"
