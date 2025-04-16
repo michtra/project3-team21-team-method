@@ -46,6 +46,8 @@ import {
     Cancel as CancelIcon,
     Receipt as ReceiptIcon,
     WbSunny as WeatherIcon, // <-- Import an icon for the weather button
+    Warning as WarningIcon,
+    Info as InfoIcon,
     // You can choose other icons like Cloud as CloudIcon etc.
 } from '@mui/icons-material';
 
@@ -66,6 +68,7 @@ function KioskView() {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [currentOrder, setCurrentOrder] = useState(null);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [showAllergenInfo, setShowAllergenInfo] = useState(false);
 
     // --- NEW: Weather State ---
     const [showWeatherModal, setShowWeatherModal] = useState(false);
@@ -88,6 +91,10 @@ function KioskView() {
         {id: 'fruit_tea', name: 'Fruit Tea', color: theme.palette.categories?.fruitTea || '#4caf50'},
         {id: 'classic_tea', name: 'Classic Tea', color: theme.palette.categories?.classicTea || '#1793d1'},
     ];
+
+    const handleToggleAllergenInfo = () => {
+        setShowAllergenInfo(prev => !prev);
+    };
 
     const getCategoryColor = (product) => {
         const categoryKey = product.category_id || product.product_type;
@@ -197,7 +204,8 @@ function KioskView() {
             price: customizedProduct.price || 0,
             customizations: customizedProduct.customizations || {}, // Ensure object
             quantity: 1,
-            categoryColor: customizedProduct.categoryColor // Store the category color
+            categoryColor: customizedProduct.categoryColor, // Store the category color
+            allergens: customizedProduct.allergens || 'None' // Store allergens if available
         };
 
         setCart(prev => [...prev, cartItem]);
@@ -438,6 +446,66 @@ function KioskView() {
                     <WeatherIcon/>
                 </IconButton>
                 {/* --- End Weather Button --- */}
+
+                {/* --- NEW: Allergen Information Button --- */}
+                <IconButton
+                    aria-label="allergen information"
+                    onClick={handleToggleAllergenInfo}
+                    sx={{
+                        position: 'absolute',
+                        top: { xs: 8, sm: 16 },
+                        right: { xs: 70, sm: 80 }, // Position it to the left of the weather button
+                        color: 'white',
+                        bgcolor: 'rgba(0, 0, 0, 0.2)',
+                        transition: 'background-color 0.3s',
+                        '&:hover': {
+                            bgcolor: 'rgba(0, 0, 0, 0.4)',
+                        }
+                    }}
+                    title="Allergen Information"
+                >
+                    <InfoIcon />
+                </IconButton>
+                <Dialog
+                    open={showAllergenInfo}
+                    onClose={() => setShowAllergenInfo(false)}
+                    maxWidth="sm"
+                    PaperProps={{ sx: { borderRadius: 3 } }}
+                >
+                    <DialogTitle sx={{ fontWeight: 'bold', pb: 1 }}>
+                        Allergen Information
+                    </DialogTitle>
+                    <DialogContent dividers>
+                        <Typography variant="body1" paragraph>
+                            We want to make sure you're aware of any potential allergens in our products. Please note the following:
+                        </Typography>
+                        <Box component="ul" sx={{ pl: 2 }}>
+                            <Box component="li" sx={{ mb: 1 }}>
+                                <Typography variant="body1" fontWeight={500}>
+                                    Dairy: All "Milk Tea" drinks contain dairy products.
+                                </Typography>
+                            </Box>
+                            <Box component="li" sx={{ mb: 1 }}>
+                                <Typography variant="body1" fontWeight={500}>
+                                    Nuts: Some drinks may contain nuts or be processed in facilities that handle nuts.
+                                </Typography>
+                            </Box>
+                            <Box component="li" sx={{ mb: 1 }}>
+                                <Typography variant="body1" fontWeight={500}>
+                                    Honey: Some of our teas contain honey.
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Typography variant="body1" paragraph sx={{ mt: 2 }}>
+                            If you have any allergies or dietary restrictions, please inform our staff before ordering.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
+                        <Button variant="contained" color="primary" onClick={() => setShowAllergenInfo(false)}>
+                            I Understand
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
 
             <Box sx={{display: 'flex', flexGrow: 1, overflow: 'hidden' /* Prevent outer scroll */}}>
@@ -549,14 +617,8 @@ function KioskView() {
                                                     }}
                                                 >
                                                     <CardActionArea
-                                                        onClick={() => handleProductClick({...product, categoryColor})}
-                                                        sx={{
-                                                            height: '100%',
-                                                            width: '100%',
-                                                            p: {xs: 1, sm: 2},
-                                                            display: 'flex',
-                                                            flexDirection: 'column'
-                                                        }}
+                                                        onClick={() => handleProductClick({ ...product, categoryColor, allergens: product.allergens})}
+                                                        sx={{ height: '100%', p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                                                     >
                                                         <Box
                                                             sx={{
@@ -608,6 +670,32 @@ function KioskView() {
                                                             }}>
                                                                 #{product.product_id}
                                                             </Box>
+
+                                                            {/* NEW: Allergen Warning */}
+                                                            {product.allergens && product.allergens !== 'None' && (
+                                                                <Box
+                                                                    sx={{
+                                                                        position: 'absolute',
+                                                                        top: 8,
+                                                                        right: 8,
+                                                                        bgcolor: 'rgba(255,152,0,0.9)',
+                                                                        color: 'white',
+                                                                        px: 1,
+                                                                        py: 0.25,
+                                                                        borderRadius: 1,
+                                                                        fontSize: '0.75rem',
+                                                                        fontWeight: 'bold',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: 0.5,
+                                                                        zIndex: 2
+                                                                    }}
+                                                                    title={`Contains allergens: ${product.allergens}`}
+                                                                >
+                                                                    <WarningIcon fontSize="inherit" />
+                                                                    <span>Allergen</span>
+                                                                </Box>
+                                                            )}
                                                         </Box>
                                                         <CardContent
                                                             sx={{
@@ -743,6 +831,17 @@ function KioskView() {
                                                     ${(item.price * item.quantity).toFixed(2)}
                                                 </Typography>
                                             </Box>
+
+                                            {item.allergens && item.allergens !== 'None' && (
+                                                <Chip
+                                                    icon={<WarningIcon fontSize="small" />}
+                                                    label={`Allergens: ${item.allergens}`}
+                                                    size="small"
+                                                    color="warning"
+                                                    variant="outlined"
+                                                    sx={{ mb: 1, fontWeight: 500, fontSize: '0.7rem' }}
+                                                />
+                                            )}
 
                                             {(item.customizations.sugar !== undefined || item.customizations.ice !== undefined || (item.customizations.toppings && Object.keys(item.customizations.toppings).length > 0)) && (
                                                 <Paper variant="outlined" sx={{
