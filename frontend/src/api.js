@@ -66,9 +66,17 @@ export const fetchTransactions = async () => {
             throw new Error("Network response was not ok");
         }
         const transactions = await response.json();
-        if (transactions.length > 0 && transactions[0].customer_transaction_num !== undefined) {
-            // sort descending to get the latest first
-            return transactions.sort((a, b) => b.customer_transaction_num - a.customer_transaction_num);
+        // the backend now sorts transactions by purchase_date and customer_transaction_num
+        // but we'll keep this sort to ensure backward compatibility
+        if (transactions.length > 0) {
+            if (transactions[0].purchase_date) {
+                // sort by purchase date if available (newest first)
+                return transactions;  // already sorted by backend
+            }
+            else if (transactions[0].customer_transaction_num !== undefined) {
+                // fallback to sorting by transaction number
+                return transactions.sort((a, b) => b.customer_transaction_num - a.customer_transaction_num);
+            }
         }
         return transactions;
 

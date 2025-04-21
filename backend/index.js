@@ -530,7 +530,23 @@ app.post('/api/transactions', async (req, res) => {
 
 app.get('/api/transactions', async (req, res) => {
     try {
-        const result = await pool.query('SELECT customer_transaction_num FROM customer_transaction ORDER BY customer_transaction_num DESC;');
+        // Query to fetch all necessary transaction details instead of just the transaction number
+        const query = `
+            SELECT 
+                ct.customer_transaction_num,
+                ct.order_id,
+                ct.product_id,
+                ct.customer_id,
+                ct.purchase_date,
+                ct.ice_amount,
+                ct.topping_type
+            FROM 
+                customer_transaction ct
+            ORDER BY 
+                ct.purchase_date DESC, 
+                ct.customer_transaction_num DESC
+        `;
+        const result = await pool.query(query);
         res.json(result.rows);
     }
     catch (err) {
