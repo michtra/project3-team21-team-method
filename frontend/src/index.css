@@ -1,3 +1,6 @@
+/* index.css */
+
+/* Base Styling */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +8,163 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Ensure the content is pinned to the top */
+  top: 0 !important;
+  position: relative !important;
+  min-height: 100vh;
+}
+
+html {
+  top: 0 !important;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* --- Google Translate Widget Styling --- */
+
+/* Container for the widget */
+#google_translate_element {
+  position: absolute !important;
+  top: 20px !important;
+  left: 210px !important;
+  z-index: 1001 !important;
+  background: transparent !important;
+}
+
+/* Style for the main dropdown button element */
+#google_translate_element .goog-te-gadget-simple {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 6px 8px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+#google_translate_element .goog-te-gadget-simple:hover {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Style the text inside the dropdown */
+#google_translate_element .goog-te-gadget-simple span,
+#google_translate_element .goog-te-menu-value span {
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.85rem !important;
+  text-decoration: none !important;
+  vertical-align: middle !important;
+}
+
+/* Hide the arrow */
+#google_translate_element .goog-te-gadget-simple .goog-arrow {
+  display: none !important;
+}
+#google_translate_element .goog-te-gadget-simple .goog-te-menu-value {
+  padding-right: 5px !important;
+  margin: 0 !important;
+}
+
+/* Hide the Google logo/link */
+.goog-logo-link,
+#google_translate_element .goog-logo-link {
+  display: none !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Hide the Google icon */
+#google_translate_element .goog-te-gadget-icon {
+  display: none !important;
+}
+
+/* Remove the "Powered by" text and top banner */
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+
+/* Style the dropdown menu panel (iframe) */
+iframe.goog-te-menu-frame {
+  display: block !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  max-height: 600px !important; /* Increased maximum height */
+  width: 280px !important;
+  overflow-y: auto !important;  /* Enable vertical scrolling */
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  background-color: #2c2c2c !important;
+}
+
+/* Style the BODY *inside* the iframe */
+.goog-te-menu-frame body {
+  height: auto !important;
+  /* Let the iframe handle the scrolling */
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  background-color: #2c2c2c !important;
+  padding: 5px 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Style the inner container div */
+.goog-te-menu-frame .goog-te-menu2 {
+  background-color: transparent !important;
+  border: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Style individual language items */
+.goog-te-menu-frame .goog-te-menu2-item div,
+.goog-te-menu-frame .goog-te-menu2-item:link div,
+.goog-te-menu-frame .goog-te-menu2-item:visited div,
+.goog-te-menu-frame .goog-te-menu2-item:active div {
+  display: block !important;
+  padding: 8px 12px !important;
+  color: #e0e0e0 !important;
+  background-color: transparent !important;
+  font-family: inherit !important;
+  font-size: 0.9rem !important;
+  white-space: normal !important;
+  border: none !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Style language item on hover/selection */
+.goog-te-menu-frame .goog-te-menu2-item-selected div,
+.goog-te-menu-frame .goog-te-menu2-item:hover div {
+  background-color: rgba(255, 152, 0, 0.2) !important;
+  color: #ff9800 !important;
+}
+
+/* Style the scrollbar for webkit browsers (Chrome, Safari) */
+.goog-te-menu-frame body::-webkit-scrollbar {
+  width: 8px !important;
+}
+.goog-te-menu-frame body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 4px !important;
+}
+.goog-te-menu-frame body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
+}
+.goog-te-menu-frame body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
 }
