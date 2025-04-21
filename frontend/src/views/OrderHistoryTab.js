@@ -30,7 +30,6 @@ import {
 function OrderHistoryTab() {
     const [transactions, setTransactions] = useState([]);
     const [filteredTransactions, setFilteredTransactions] = useState([]);
-    const [_, setProducts] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -46,58 +45,32 @@ function OrderHistoryTab() {
                 // fetch transactions
                 const transactionsData = await fetchTransactions();
 
-                // fetch products to get names
+                // fetch products to get names and base prices
                 const productsData = await fetchProducts();
 
                 // create a lookup map for products
                 const productsMap = {};
                 productsData.forEach(product => {
-                    productsMap[product.product_id] = product;
-                });
-
-                setProducts(productsMap);
-
-                // group transactions by order_id/customer_transaction_num
-                const transactionsByOrder = {};
-
-                transactionsData.forEach(transaction => {
-                    const product = productsMap[transaction.product_id];
-                    const transactionWithProduct = {
-                        ...transaction,
-                        productName: product ? product.product_name : 'Unknown Product',
-                        productPrice: product ? product.product_cost : 0,
-                        productType: product ? product.product_type : 'Unknown'
-                    };
-
-                    if (!transactionsByOrder[transaction.customer_transaction_num]) {
-                        transactionsByOrder[transaction.customer_transaction_num] = [];
-                    }
-
-                    transactionsByOrder[transaction.customer_transaction_num].push(transactionWithProduct);
-                });
-
-                // convert to array of order groups
-                const processedTransactions = Object.keys(transactionsByOrder).map(orderNum => {
-                    const items = transactionsByOrder[orderNum];
-                    const orderDate = new Date(items[0].purchase_date);
-
-                    // calculate total for the order
-                    const orderTotal = items.reduce((sum, item) => sum + item.productPrice, 0);
-
-                    return {
-                        orderNum: parseInt(orderNum),
-                        date: orderDate,
-                        items: items,
-                        total: orderTotal,
-                        customer_id: items[0].customer_id
+                    productsMap[product.product_id] = {
+                        ...product,
+                        base_cost: product.base_cost || product.product_cost // Ensure we have the base cost
                     };
                 });
 
-                // sort by most recent first
-                processedTransactions.sort((a, b) => b.date - a.date);
+                // first, sort transactions chronologically by purchase date
+                // this is crucial for calculating the progressive dynamic pricing
+                const sortedTransactions = [...transactionsData].sort((a, b) => {
+                    return new Date(a.purchase_date) - new Date(b.purchase_date);
+                });
 
-                setTransactions(processedTransactions);
-                setFilteredTransactions(processedTransactions);
+                // process transactions with correct historical pricing
+                const processedTransactions = processTransactionsWithHistoricalPricing(sortedTransactions, productsMap);
+
+                // group by order_id/customer_transaction_num after processing
+                const groupedTransactions = groupTransactionsByOrder(processedTransactions);
+
+                setTransactions(groupedTransactions);
+                setFilteredTransactions(groupedTransactions);
                 setLoading(false);
             }
             catch (err) {
@@ -110,6 +83,91 @@ function OrderHistoryTab() {
         loadData();
         // eslint-disable-next-line
     }, []);
+
+    // process transactions with correct historical dynamic pricing
+    const processTransactionsWithHistoricalPricing = (sortedTransactions, productsMap) => {
+        // create a counts tracking object
+        const productCountsByDay = {};
+        
+        return sortedTransactions.map(transaction => {
+            const purchaseDate = new Date(transaction.purchase_date);
+            
+            // extract date components and create a date-only string (YYYY-MM-DD) in local timezone
+            const year = purchaseDate.getFullYear();
+            const month = String(purchaseDate.getMonth() + 1).padStart(2, '0');
+            const day = String(purchaseDate.getDate()).padStart(2, '0');
+            const dateKey = `${year}-${month}-${day}`;
+            
+            const productId = transaction.product_id;
+            
+            // make sure we have a tracking object for this date
+            if (!productCountsByDay[dateKey]) {
+                productCountsByDay[dateKey] = {};
+            }
+            
+            // get current count for this product on this day (before this transaction)
+            const currentDayCount = productCountsByDay[dateKey][productId] || 0;
+            
+            // calculate the dynamic price at the time of this purchase
+            const product = productsMap[productId];
+            let historicalPrice = 0;
+            
+            if (product) {
+                const basePrice = product.base_cost || product.product_cost;
+                const priceIncreaseFactor = 1 + (currentDayCount * 0.01); // 1% increase per order
+                historicalPrice = parseFloat((basePrice * priceIncreaseFactor).toFixed(2));
+            }
+            
+            // increment the count for future transactions on this same day
+            productCountsByDay[dateKey][productId] = currentDayCount + 1;
+            
+            // add the product info and historical price to the transaction
+            return {
+                ...transaction,
+                productName: product ? product.product_name : 'Unknown Product',
+                productPrice: historicalPrice, // Use the calculated historical price
+                productType: product ? product.product_type : 'Unknown',
+                orderCount: currentDayCount, // Store the order count for reference
+                dateKey: dateKey, // Store the date key for debugging
+                purchaseTime: purchaseDate.toLocaleTimeString() // Store time for debugging
+            };
+        });
+    };
+
+    // group transactions by order
+    const groupTransactionsByOrder = (processedTransactions) => {
+        const transactionsByOrder = {};
+
+        processedTransactions.forEach(transaction => {
+            if (!transactionsByOrder[transaction.customer_transaction_num]) {
+                transactionsByOrder[transaction.customer_transaction_num] = [];
+            }
+
+            transactionsByOrder[transaction.customer_transaction_num].push(transaction);
+        });
+
+        // convert to array of order groups
+        return Object.keys(transactionsByOrder).map(orderNum => {
+            const items = transactionsByOrder[orderNum];
+            const orderDate = new Date(items[0].purchase_date);
+
+            // calculate total for the order using the historical prices
+            const orderTotal = items.reduce((sum, item) => sum + item.productPrice, 0);
+
+            return {
+                orderNum: parseInt(orderNum),
+                date: orderDate,
+                items: items,
+                total: orderTotal,
+                customer_id: items[0].customer_id
+            };
+        }).sort((a, b) => {
+            // sort by date first (most recent first), then by order number
+            const dateCompare = b.date - a.date;
+            if (dateCompare !== 0) return dateCompare;
+            return b.orderNum - a.orderNum;
+        });
+    };
 
     // filter transactions based on search query and date range
     useEffect(() => {
@@ -272,7 +330,7 @@ function OrderHistoryTab() {
                                 <TableCell>Date</TableCell>
                                 <TableCell>Customer</TableCell>
                                 <TableCell>Items</TableCell>
-                                <TableCell align="right">Total</TableCell>
+                                <TableCell align="right">Item Subtotal</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -315,6 +373,15 @@ function OrderHistoryTab() {
                                                             sx={{mr: 1, color: 'text.secondary', fontSize: 16}}/>
                                                         <Typography variant="body2" sx={{mr: 1}}>
                                                             {item.productName}
+                                                            {item.orderCount > 0 && (
+                                                                <Chip
+                                                                    size="small"
+                                                                    label={`+${item.orderCount}%`}
+                                                                    color="secondary"
+                                                                    sx={{ml: 1, height: 20, fontSize: '0.7rem'}}
+                                                                    title={`Date: ${item.dateKey} Time: ${item.purchaseTime}`}
+                                                                />
+                                                            )}
                                                         </Typography>
                                                         {/* Only show ice chip if ice_amount exists and is greater than 0 */}
                                                         {(item.ice_amount !== undefined && item.ice_amount !== null &&

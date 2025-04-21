@@ -32,6 +32,7 @@ import {
     Delete as DeleteIcon,
     Category as CategoryIcon
 } from '@mui/icons-material';
+import {TrendingUp as TrendingUpIcon} from '@mui/icons-material';
 
 const ManagerProductView = () => {
     const [products, setProducts] = useState([]);
@@ -224,7 +225,25 @@ const ManagerProductView = () => {
                                 products.map(product => (
                                     <TableRow key={product.product_id} hover>
                                         <TableCell>{product.product_name}</TableCell>
-                                        <TableCell align="right">${product.product_cost.toFixed(2)}</TableCell>
+                                        <TableCell align="right">
+                                            {product.price_increased ? (
+                                                <Tooltip
+                                                    title={`Base price: $${product.base_cost.toFixed(2)} + ${(product.order_count)}% (${product.order_count} orders today)`}>
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'flex-end'
+                                                    }}>
+                                                        <Typography
+                                                            component="span">${product.product_cost.toFixed(2)}</Typography>
+                                                        <TrendingUpIcon fontSize="small"
+                                                                        sx={{ml: 0.5, color: 'warning.main'}}/>
+                                                    </Box>
+                                                </Tooltip>
+                                            ) : (
+                                                `$${product.product_cost.toFixed(2)}`
+                                            )}
+                                        </TableCell>
                                         <TableCell>{product.product_type}</TableCell>
                                         <TableCell align="center">
                                             <Box sx={{display: 'flex', justifyContent: 'center'}}>

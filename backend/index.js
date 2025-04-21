@@ -62,8 +62,46 @@ app.put('/api/products/:productId', async (req, res) => {
 
 app.get('/api/products', async (req, res) => {
     try {
-        const result = await pool.query('SELECT product_id, product_name, product_cost, product_type, allergens FROM product ORDER BY product_name ASC;');
-        res.json(result.rows);
+        // get base product information
+        const productsResult = await pool.query('SELECT product_id, product_name, product_cost, product_type, allergens FROM product ORDER BY product_name ASC;');
+
+        // get today's date (start of day)
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        // query today's orders to count by product_id
+        const ordersQuery = `
+            SELECT product_id, COUNT(*) as order_count
+            FROM customer_transaction
+            WHERE purchase_date >= $1::date
+            AND purchase_date < ($1::date + INTERVAL '1 day')
+            GROUP BY product_id
+        `;
+        const ordersResult = await pool.query(ordersQuery, [todayStart.toISOString().split('T')[0]]);
+
+        // create a map of product_id to order_count
+        const orderCounts = {};
+        ordersResult.rows.forEach(row => {
+            orderCounts[row.product_id] = parseInt(row.order_count);
+        });
+
+        // apply dynamic pricing to products
+        const productsWithDynamicPricing = productsResult.rows.map(product => {
+            const orderCount = orderCounts[product.product_id] || 0;
+            const priceIncreaseFactor = 1 + (orderCount * 0.01); // 1% increase per order
+            const originalCost = parseFloat(product.product_cost);
+            const dynamicCost = parseFloat((originalCost * priceIncreaseFactor).toFixed(2));
+
+            return {
+                ...product,
+                base_cost: originalCost,
+                product_cost: dynamicCost,
+                order_count: orderCount,
+                price_increased: orderCount > 0
+            };
+        });
+
+        res.json(productsWithDynamicPricing);
     }
     catch (err) {
         console.error('Database error fetching products:', err);
@@ -453,12 +491,15 @@ app.post('/api/transactions', async (req, res) => {
                 toppingType = Object.keys(customizations.toppings).join(', ');
             }
 
+            // Get a unique transaction ID for each item
+            const itemTransactionId = await getNextTransactionNumber();
+            
             // insert the transaction record
             await pool.query(
                 'INSERT INTO customer_transaction (customer_transaction_num, order_id, product_id, customer_id, purchase_date, ice_amount, topping_type) VALUES ($1, $2, $3, $4, $5, $6, $7)',
                 [
-                    transactionId,
-                    transaction_number, // generate an order ID
+                    itemTransactionId,
+                    transaction_number, // use the same order_id to group items
                     product_id,
                     customer_id || 0, // default to 0 for guest
                     transaction_date || new Date().toISOString(),
@@ -542,9 +583,10 @@ app.get('/api/transactions', async (req, res) => {
                 ct.topping_type
             FROM 
                 customer_transaction ct
-            ORDER BY 
-                ct.purchase_date DESC, 
-                ct.customer_transaction_num DESC
+            ORDER BY
+                ct.customer_transaction_num DESC,
+                ct.order_id DESC,
+                ct.purchase_date DESC
         `;
         const result = await pool.query(query);
         res.json(result.rows);

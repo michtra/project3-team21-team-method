@@ -1,5 +1,6 @@
 import React from 'react';
-import {Grid, Card, CardActionArea, CardContent, Typography, Box, useTheme} from '@mui/material';
+import {Grid, Card, CardActionArea, CardContent, Typography, Box, useTheme, Tooltip} from '@mui/material';
+import {TrendingUp as TrendingUpIcon} from '@mui/icons-material';
 
 function ProductGrid({products, handleProductClick, categories}) {
     const theme = useTheme();
@@ -54,9 +55,23 @@ function ProductGrid({products, handleProductClick, categories}) {
                                             <Typography variant="h6" component="div" gutterBottom noWrap>
                                                 <strong>{product.product_id}</strong> - {product.product_name}
                                             </Typography>
-                                            <Typography variant="h5" sx={{fontWeight: 600, color: categoryColor}}>
-                                                ${product.product_cost.toFixed(2)}
-                                            </Typography>
+                                            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                <Typography variant="h5" sx={{fontWeight: 600, color: categoryColor}}>
+                                                    ${product.product_cost.toFixed(2)}
+                                                </Typography>
+                                                {product.price_increased && (
+                                                    <Tooltip
+                                                        title={`Dynamic pricing: Price increased by ${product.order_count}% (${product.order_count} orders today)`}>
+                                                        <TrendingUpIcon
+                                                            fontSize="small"
+                                                            sx={{
+                                                                ml: 0.5,
+                                                                color: theme.palette.warning.main || '#f59e0b'
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
                                         </CardContent>
                                     </CardActionArea>
                                 </Card>

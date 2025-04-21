@@ -1,7 +1,8 @@
 import React from 'react';
-import {Card, CardActionArea, Box, CardContent, Typography, Chip, Fade} from '@mui/material';
+import {Card, CardActionArea, Box, CardContent, Typography, Chip, Fade, Tooltip} from '@mui/material';
 import ProductImage from './ProductImage';
 import AllergenIcon from './AllergenIcon';
+import {TrendingUp as TrendingUpIcon} from '@mui/icons-material';
 
 const ProductCard = ({product, index, handleProductClick, getCategoryColor, categories, theme}) => {
     const categoryColor = getCategoryColor(product);
@@ -137,13 +138,27 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                             mt: 1,
                             width: '100%'
                         }}>
-                            <Typography variant="h5" sx={{
-                                fontWeight: 700,
-                                color: categoryColor,
-                                fontSize: {xs: '1.1rem', sm: '1.5rem'}
-                            }}>
-                                ${product.product_cost.toFixed(2)}
-                            </Typography>
+                            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography variant="h5" sx={{
+                                    fontWeight: 700,
+                                    color: categoryColor,
+                                    fontSize: {xs: '1.1rem', sm: '1.5rem'}
+                                }}>
+                                    ${product.product_cost.toFixed(2)}
+                                </Typography>
+                                {product.price_increased && (
+                                    <Tooltip
+                                        title={`Price increased ${product.order_count}% due to popularity (${product.order_count} orders today)`}>
+                                        <TrendingUpIcon
+                                            fontSize="small"
+                                            sx={{
+                                                ml: 0.5,
+                                                color: theme.palette.warning.main
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
+                            </Box>
                             <Chip label="ADD" size="small" sx={{
                                 borderRadius: 3,
                                 bgcolor: categoryColor,
