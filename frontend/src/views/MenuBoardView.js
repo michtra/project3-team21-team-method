@@ -2,10 +2,14 @@
 import React, {useState, useEffect} from 'react';
 import {fetchProducts} from '../api';
 import ProductImage from '../components/ProductImage';
-// Add React Icons imports for allergens
+import AllergenIcon from '../components/AllergenIcon'; // Import the AllergenIcon component
+
+// Add React Icons imports for allergens (for the legend at the top)
 import {GiPeanut} from "react-icons/gi";
 import {LuMilk} from "react-icons/lu";
 import {SiHoneygain} from "react-icons/si";
+import {MdOutlineNoFood} from "react-icons/md";
+
 import {
     Box,
     Container,
@@ -17,8 +21,7 @@ import {
     Alert,
     Paper,
     useTheme,
-    Tooltip,
-    Stack
+    Tooltip
 } from '@mui/material';
 import {TrendingUp as TrendingUpIcon} from '@mui/icons-material';
 
@@ -59,104 +62,6 @@ function MenuBoardView() {
 
         loadProducts();
     }, []);
-
-    // Function to render allergen icons - now with larger size and golden/amber color
-    const renderAllergenIcons = (product, category) => {
-        if (!product.allergens && category.id !== 'milk_tea') return null;
-
-        // Always show milk icon for milk tea category
-        if (category.id === 'milk_tea') {
-            return (
-                <Stack direction="row" spacing={1} sx={{mt: 1}}>
-                    <Tooltip title="Contains Dairy" arrow>
-                        <Box sx={{
-                            color: '#F5A623', // Golden/amber color
-                            display: 'flex',
-                            alignItems: 'center',
-                            p: 0.5,
-                            borderRadius: 1,
-                            bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
-                        }}>
-                            <LuMilk size={22}/> {/* Enlarged size */}
-                        </Box>
-                    </Tooltip>
-                </Stack>
-            );
-        }
-
-        // Handle product-specific allergens
-        if (!product.allergens || product.allergens === 'None') return null;
-
-        // Parse the allergens string (if it's a string) or use the array directly
-        let allergenList = [];
-        if (typeof product.allergens === 'string') {
-            allergenList = product.allergens.split(',').map(item => item.trim());
-        }
-        else if (Array.isArray(product.allergens)) {
-            allergenList = product.allergens;
-        }
-        else {
-            return null;
-        }
-
-        // Determine which icon to show - prioritize in order: nuts, honey, dairy
-        let iconElement = null;
-
-        if (allergenList.some(allergen => allergen.toLowerCase().includes('nut') || allergen.toLowerCase().includes('peanut'))) {
-            iconElement = (
-                <Tooltip title="Contains Nuts" arrow>
-                    <Box sx={{
-                        color: '#F5A623', // Golden/amber color
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
-                    }}>
-                        <GiPeanut size={22}/> {/* Enlarged size */}
-                    </Box>
-                </Tooltip>
-            );
-        }
-        else if (allergenList.some(allergen => allergen.toLowerCase().includes('honey'))) {
-            iconElement = (
-                <Tooltip title="Contains Honey" arrow>
-                    <Box sx={{
-                        color: '#F5A623', // Golden/amber color
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
-                    }}>
-                        <SiHoneygain size={22}/> {/* Enlarged size */}
-                    </Box>
-                </Tooltip>
-            );
-        }
-        else if (allergenList.some(allergen => allergen.toLowerCase().includes('milk') || allergen.toLowerCase().includes('dairy'))) {
-            iconElement = (
-                <Tooltip title="Contains Dairy" arrow>
-                    <Box sx={{
-                        color: '#F5A623', // Golden/amber color
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
-                    }}>
-                        <LuMilk size={22}/> {/* Enlarged size */}
-                    </Box>
-                </Tooltip>
-            );
-        }
-
-        return (
-            <Stack direction="row" spacing={1} sx={{mt: 1}}>
-                {iconElement}
-            </Stack>
-        );
-    };
 
     const getProductsByCategory = (categoryId) => {
         let filtered = products.filter(product => {
@@ -261,20 +166,26 @@ function MenuBoardView() {
                         <Typography variant="caption" color="text.primary">Allergens:</Typography>
                         <Tooltip title="Contains Dairy" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <LuMilk size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <LuMilk size={16} color="inherit" />
                                 <Typography variant="caption" color="text.primary">Dairy</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Nuts" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <GiPeanut size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <GiPeanut size={16} color="inherit" />
                                 <Typography variant="caption" color="text.primary">Nuts</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Honey" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <SiHoneygain size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <SiHoneygain size={16} color="inherit" />
                                 <Typography variant="caption" color="text.primary">Honey</Typography>
+                            </Box>
+                        </Tooltip>
+                        <Tooltip title="Allergen-Free" arrow>
+                            <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
+                                <MdOutlineNoFood size={16} color="inherit" />
+                                <Typography variant="caption" color="text.primary">Allergen-Free</Typography>
                             </Box>
                         </Tooltip>
                     </Box>
@@ -384,8 +295,6 @@ function MenuBoardView() {
                                                         >
                                                             {product.product_id}
                                                         </Box>
-
-                                                        {/* Removed allergen icons from top-right to avoid duplication */}
                                                     </Box>
                                                     <CardContent
                                                         sx={{
@@ -416,8 +325,10 @@ function MenuBoardView() {
                                                                 </Tooltip>
                                                             )}
                                                         </Typography>
-                                                        {/* Render enlarged allergen icons below the price */}
-                                                        {renderAllergenIcons(product, category)}
+                                                        {/* Use the AllergenIcon component instead of renderAllergenIcons */}
+                                                        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
+                                                            <AllergenIcon product={product} />
+                                                        </Box>
                                                     </CardContent>
                                                 </Card>
                                             </Grid>

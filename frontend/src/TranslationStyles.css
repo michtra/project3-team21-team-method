@@ -1,0 +1,112 @@
+/* TranslationStyles.css */
+
+/* Container for the widget inside accessibility panel */
+#accessibility_translation_container {
+    width: 100% !important;
+    background: transparent !important;
+}
+
+#accessibility_google_translate_element {
+    width: 100% !important;
+    background: transparent !important;
+    margin-bottom: 10px !important;
+}
+
+/* Style for the main dropdown button element inside accessibility panel */
+#accessibility_google_translate_element .goog-te-gadget-simple {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    /* Ensure this element inherits the text color from the accessibility widget */
+    color: var(--accessibility-text-color, inherit) !important;
+}
+
+#accessibility_google_translate_element .goog-te-gadget-simple:hover {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Style the text inside the dropdown - Now with stronger color inheritance */
+#accessibility_google_translate_element .goog-te-gadget-simple span,
+#accessibility_google_translate_element .goog-te-menu-value span,
+#accessibility_google_translate_element .goog-te-gadget span {
+    /* Use the CSS variable to match header text color */
+    color: var(--accessibility-text-color, inherit) !important;
+    font-family: inherit !important;
+    font-size: 0.85rem !important;
+    text-decoration: none !important;
+    vertical-align: middle !important;
+}
+
+/* Extra specificity to ensure our color rules are applied */
+.accessibility-widget #accessibility_google_translate_element .goog-te-gadget-simple .goog-te-menu-value span {
+    color: var(--accessibility-text-color, inherit) !important;
+}
+
+/* Hide google branding */
+#accessibility_google_translate_element .goog-te-gadget img,
+#accessibility_google_translate_element .goog-te-gadget-icon,
+#accessibility_google_translate_element .goog-logo-link {
+    display: none !important;
+}
+
+/* Hide the arrow */
+#accessibility_google_translate_element .goog-te-gadget-simple img {
+    display: none !important;
+}
+
+/* Control the text that appears in the dropdown */
+#accessibility_google_translate_element .goog-te-gadget-simple .goog-te-menu-value {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+/* Add a dropdown arrow */
+#accessibility_google_translate_element .goog-te-gadget-simple .goog-te-menu-value:after {
+    content: "▼" !important;
+    font-size: 0.7rem !important;
+    margin-left: 8px !important;
+    /* Make sure the arrow also inherits the text color */
+    color: var(--accessibility-text-color, inherit) !important;
+}
+
+/* Ensure the dropdown menu is styled properly */
+iframe.goog-te-menu-frame.skiptranslate {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+    max-height: 400px !important;
+}
+
+/* Hide the top banner completely */
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+}
+
+/* Ensure content stays at the top and doesn't get pushed down by hidden frames */
+body {
+    top: 0 !important;
+    position: relative !important;
+}
+
+/* Remove the original Google Translate element once integrated */
+#google_translate_element {
+    display: none !important;
+}
+
+/* Hide the "Powered by Google Translate" text */
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
+    display: none !important;
+}

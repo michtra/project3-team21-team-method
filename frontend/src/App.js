@@ -32,6 +32,10 @@ import OAuthCallback from './OAuthCallback';
 import { getAuthUrl, logout, getUserFromStorage } from './authService';
 import AccessibilityWidget from './components/AccessibilityWidget';
 
+// Import CSS files
+import './index.css';
+import './TranslationStyles.css'; // Add this line to import translation styles
+
 function App() {
     const [currentView, setCurrentView] = useState('main');
     const [user, setUser] = useState(null);

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Box,
     Typography,
@@ -22,6 +22,8 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import baseTheme from '../theme';
 import {createTheme} from '@mui/material/styles';
+// Import our new TranslationControl component
+import TranslationControl from './TranslationControl';
 
 // Create high contrast themes outside the component to prevent recreation on each render
 const darkHighContrastTheme = createTheme({
@@ -350,6 +352,9 @@ function AccessibilityWidget({onThemeChange}) {
                         </IconButton>
                     </Box>
                 </Box>
+
+                {/* Add Translation control at the top */}
+                <TranslationControl />
 
                 {/* Font size control */}
                 <Paper sx={{mb: 3, p: 2}}>
