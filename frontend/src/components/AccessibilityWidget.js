@@ -354,7 +354,7 @@ function AccessibilityWidget({onThemeChange}) {
                 </Box>
 
                 {/* Add Translation control at the top */}
-                <TranslationControl />
+                <TranslationControl/>
 
                 {/* Font size control */}
                 <Paper sx={{mb: 3, p: 2}}>

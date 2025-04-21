@@ -4,7 +4,6 @@ import {fetchProducts} from '../api';
 import ProductImage from '../components/ProductImage';
 import AllergenIcon from '../components/AllergenIcon'; // Import the AllergenIcon component
 
-// Add React Icons imports for allergens (for the legend at the top)
 import {GiPeanut} from "react-icons/gi";
 import {LuMilk} from "react-icons/lu";
 import {SiHoneygain} from "react-icons/si";
@@ -166,25 +165,25 @@ function MenuBoardView() {
                         <Typography variant="caption" color="text.primary">Allergens:</Typography>
                         <Tooltip title="Contains Dairy" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <LuMilk size={16} color="inherit" />
+                                <LuMilk size={16} color="inherit"/>
                                 <Typography variant="caption" color="text.primary">Dairy</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Nuts" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <GiPeanut size={16} color="inherit" />
+                                <GiPeanut size={16} color="inherit"/>
                                 <Typography variant="caption" color="text.primary">Nuts</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Honey" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <SiHoneygain size={16} color="inherit" />
+                                <SiHoneygain size={16} color="inherit"/>
                                 <Typography variant="caption" color="text.primary">Honey</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Allergen-Free" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <MdOutlineNoFood size={16} color="inherit" />
+                                <MdOutlineNoFood size={16} color="inherit"/>
                                 <Typography variant="caption" color="text.primary">Allergen-Free</Typography>
                             </Box>
                         </Tooltip>
@@ -326,8 +325,9 @@ function MenuBoardView() {
                                                             )}
                                                         </Typography>
                                                         {/* Use the AllergenIcon component instead of renderAllergenIcons */}
-                                                        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-start' }}>
-                                                            <AllergenIcon product={product} />
+                                                        <Box
+                                                            sx={{mt: 1, display: 'flex', justifyContent: 'flex-start'}}>
+                                                            <AllergenIcon product={product}/>
                                                         </Box>
                                                     </CardContent>
                                                 </Card>

@@ -4,30 +4,29 @@ import TranslateIcon from '@mui/icons-material/Translate';
 
 function TranslationControl() {
     const [loading, setLoading] = useState(true);
-    // Get the current theme to access the text color
+    // get the current theme to access the text color
     const theme = useTheme();
 
     useEffect(() => {
-        // Set the CSS variable for the text color in the accessibility widget
+        // set the CSS variable for the text color in the accessibility widget
         document.documentElement.style.setProperty(
             '--accessibility-text-color',
             theme.palette.text.primary
         );
 
-        // Only add the translation element if it doesn't already exist
+        // only add the translation element if it doesn't already exist
         if (!document.getElementById('accessibility_google_translate_element')) {
-            // Create a placeholder div for Google Translate to initialize on
+            // placeholder div for Google Translate to initialize on
             const translationContainer = document.createElement('div');
             translationContainer.id = 'accessibility_google_translate_element';
 
-            // Add it to a known DOM element that always exists
             const containerElement = document.getElementById('accessibility_translation_container');
             if (containerElement) {
-                // Clean any previous content to prevent duplication
+                // clean any previous content to prevent duplication
                 containerElement.innerHTML = '';
                 containerElement.appendChild(translationContainer);
 
-                // Initialize Google Translate
+                // initialize Google Translate
                 if (window.google && window.google.translate) {
                     new window.google.translate.TranslateElement(
                         {
@@ -41,12 +40,12 @@ function TranslationControl() {
                     setLoading(false);
                 }
                 else {
-                    // Set up a check for the Google Translate API
+                    // set up a check for the Google Translate API
                     const checkGoogleInterval = setInterval(() => {
                         if (window.google && window.google.translate) {
                             clearInterval(checkGoogleInterval);
 
-                            // Try initializing again
+                            // try initializing again
                             try {
                                 new window.google.translate.TranslateElement(
                                     {
@@ -66,7 +65,7 @@ function TranslationControl() {
                         }
                     }, 500);
 
-                    // Set a timeout to stop checking after 10 seconds
+                    // timeout to stop checking
                     setTimeout(() => {
                         clearInterval(checkGoogleInterval);
                         setLoading(false);
@@ -75,12 +74,12 @@ function TranslationControl() {
             }
         }
         else {
-            // Element already exists, no need to reload
+            // element already exists, no need to reload
             setLoading(false);
         }
     }, [theme.palette.text.primary]);
 
-    // Update the text color when the theme changes
+    // update the text color when the theme changes
     useEffect(() => {
         document.documentElement.style.setProperty(
             '--accessibility-text-color',
