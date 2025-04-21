@@ -2,6 +2,10 @@
 import React, {useState, useEffect} from 'react';
 import {fetchProducts} from '../api';
 import ProductImage from '../components/ProductImage';
+// Add React Icons imports for allergens
+import { GiPeanut } from "react-icons/gi";
+import { LuMilk } from "react-icons/lu";
+import { SiHoneygain } from "react-icons/si";
 import {
     Box,
     Container,
@@ -12,7 +16,9 @@ import {
     CircularProgress,
     Alert,
     Paper,
-    useTheme
+    useTheme,
+    Tooltip,
+    Stack
 } from '@mui/material';
 
 function MenuBoardView() {
@@ -52,6 +58,100 @@ function MenuBoardView() {
 
         loadProducts();
     }, []);
+
+    // Function to render allergen icons - now with larger size and golden/amber color
+    const renderAllergenIcons = (product, category) => {
+        if (!product.allergens && category.id !== 'milk_tea') return null;
+        
+        // Always show milk icon for milk tea category
+        if (category.id === 'milk_tea') {
+            return (
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                    <Tooltip title="Contains Dairy" arrow>
+                        <Box sx={{ 
+                            color: '#F5A623', // Golden/amber color
+                            display: 'flex', 
+                            alignItems: 'center',
+                            p: 0.5,
+                            borderRadius: 1,
+                            bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
+                        }}>
+                            <LuMilk size={22} /> {/* Enlarged size */}
+                        </Box>
+                    </Tooltip>
+                </Stack>
+            );
+        }
+        
+        // Handle product-specific allergens
+        if (!product.allergens || product.allergens === 'None') return null;
+        
+        // Parse the allergens string (if it's a string) or use the array directly
+        let allergenList = [];
+        if (typeof product.allergens === 'string') {
+            allergenList = product.allergens.split(',').map(item => item.trim());
+        } else if (Array.isArray(product.allergens)) {
+            allergenList = product.allergens;
+        } else {
+            return null;
+        }
+
+        // Determine which icon to show - prioritize in order: nuts, honey, dairy
+        let iconElement = null;
+        
+        if (allergenList.some(allergen => allergen.toLowerCase().includes('nut') || allergen.toLowerCase().includes('peanut'))) {
+            iconElement = (
+                <Tooltip title="Contains Nuts" arrow>
+                    <Box sx={{ 
+                        color: '#F5A623', // Golden/amber color
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
+                    }}>
+                        <GiPeanut size={22} /> {/* Enlarged size */}
+                    </Box>
+                </Tooltip>
+            );
+        } else if (allergenList.some(allergen => allergen.toLowerCase().includes('honey'))) {
+            iconElement = (
+                <Tooltip title="Contains Honey" arrow>
+                    <Box sx={{ 
+                        color: '#F5A623', // Golden/amber color
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
+                    }}>
+                        <SiHoneygain size={22} /> {/* Enlarged size */}
+                    </Box>
+                </Tooltip>
+            );
+        } else if (allergenList.some(allergen => allergen.toLowerCase().includes('milk') || allergen.toLowerCase().includes('dairy'))) {
+            iconElement = (
+                <Tooltip title="Contains Dairy" arrow>
+                    <Box sx={{ 
+                        color: '#F5A623', // Golden/amber color
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: 'rgba(245, 166, 35, 0.1)', // Light amber background
+                    }}>
+                        <LuMilk size={22} /> {/* Enlarged size */}
+                    </Box>
+                </Tooltip>
+            );
+        }
+        
+        return (
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                {iconElement}
+            </Stack>
+        );
+    };
 
     const getProductsByCategory = (categoryId) => {
         let filtered = products.filter(product => {
@@ -144,6 +244,37 @@ function MenuBoardView() {
                     >
                         Our premium bubble tea is made with fresh ingredients and creative flavors.
                     </Typography>
+                    
+                    {/* Allergen legend */}
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 3, 
+                        mt: 2,
+                        p: 1,
+                        borderRadius: 1,
+                        bgcolor: 'rgba(255,255,255,0.1)'
+                    }}>
+                        <Typography variant="caption" color="white">Allergens:</Typography>
+                        <Tooltip title="Contains Dairy" arrow>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <LuMilk size={16} style={{ color: 'white' }} />
+                                <Typography variant="caption" color="white">Dairy</Typography>
+                            </Box>
+                        </Tooltip>
+                        <Tooltip title="Contains Nuts" arrow>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <GiPeanut size={16} style={{ color: 'white' }} />
+                                <Typography variant="caption" color="white">Nuts</Typography>
+                            </Box>
+                        </Tooltip>
+                        <Tooltip title="Contains Honey" arrow>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <SiHoneygain size={16} style={{ color: 'white' }} />
+                                <Typography variant="caption" color="white">Honey</Typography>
+                            </Box>
+                        </Tooltip>
+                    </Box>
                 </Paper>
 
                 {/* Menu Categories */}
@@ -186,6 +317,15 @@ function MenuBoardView() {
                                     >
                                         {category.name}
                                     </Typography>
+                                    
+                                    {/* Add category-specific allergen warning if needed */}
+                                    {category.id === 'milk_tea' && (
+                                        <Tooltip title="Contains Dairy" arrow>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', color: 'warning.main' }}>
+                                                <LuMilk size={20} />
+                                            </Box>
+                                        </Tooltip>
+                                    )}
                                 </Paper>
 
                                 <Grid container spacing={3}>
@@ -241,6 +381,8 @@ function MenuBoardView() {
                                                         >
                                                             {product.product_id}
                                                         </Box>
+                                                        
+                                                        {/* Removed allergen icons from top-right to avoid duplication */}
                                                     </Box>
                                                     <CardContent
                                                         sx={{
@@ -258,6 +400,9 @@ function MenuBoardView() {
                                                                     sx={{fontWeight: 600}}>
                                                             ${product.product_cost.toFixed(2)}
                                                         </Typography>
+                                                        
+                                                        {/* Render enlarged allergen icons below the price */}
+                                                        {renderAllergenIcons(product, category)}
                                                     </CardContent>
                                                 </Card>
                                             </Grid>

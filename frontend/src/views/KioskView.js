@@ -1,31 +1,32 @@
-// KioskView.js
-import React, {useState, useEffect, useCallback} from 'react';
-// Import fetchWeather from api.js
+// src/views/KioskView.js
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     fetchProducts,
     createTransaction,
     fetchInventory,
     fetchTransactions,
-    fetchWeather // <-- Import the new function
+    fetchWeather
 } from '../api';
+
+// Import custom components
 import DrinkCustomizationModal from '../components/DrinkCustomizationModal';
-import ProductImage from '../components/ProductImage';
+import ProductCard from '../components/ProductCard';
+import CategorySelector from '../components/CategorySelector';
+import CartItem from '../components/CartItem';
+import OrderSummary from '../components/OrderSummary';
+import WeatherModal from '../components/WeatherModal';
+
+// MUI components
 import {
     Box,
     Container,
     Grid,
     Typography,
     Button,
-    Card,
-    CardContent,
-    CardActionArea,
     Paper,
     InputBase,
-    Divider,
     List,
-    ListItem,
-    IconButton, // <-- Import IconButton
-    Fade,
+    IconButton,
     Chip,
     CircularProgress,
     Alert,
@@ -36,30 +37,31 @@ import {
     DialogTitle,
     Snackbar
 } from '@mui/material';
+
+// Icons
 import {
-    Add as AddIcon,
-    Remove as RemoveIcon,
-    Delete as DeleteIcon,
     Search as SearchIcon,
     ShoppingCart as CartIcon,
-    CreditCard as PaymentIcon,
-    Cancel as CancelIcon,
     Receipt as ReceiptIcon,
-    WbSunny as WeatherIcon, // <-- Import an icon for the weather button
-    Warning as WarningIcon,
+    WbSunny as WeatherIcon,
     Info as InfoIcon,
-    // You can choose other icons like Cloud as CloudIcon etc.
 } from '@mui/icons-material';
 
+// Allergen icons
+import { GiPeanut } from "react-icons/gi";
+import { LuMilk } from "react-icons/lu";
+import { SiHoneygain } from "react-icons/si";
+import { MdOutlineNoFood } from "react-icons/md"; // Added for allergen-free indicator
+
 function KioskView() {
-    // --- Existing State ---
+    // --- State ---
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [cart, setCart] = useState([]);
-    const [orderTotal, setOrderTotal] = useState({subtotal: 0, tax: 0, total: 0});
+    const [orderTotal, setOrderTotal] = useState({ subtotal: 0, tax: 0, total: 0 });
     const theme = useTheme();
     const [transactionNumber, setTransactionNumber] = useState(2001); // Initial fallback
     const [processingPayment, setProcessingPayment] = useState(false);
@@ -70,27 +72,29 @@ function KioskView() {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showAllergenInfo, setShowAllergenInfo] = useState(false);
 
-    // --- NEW: Weather State ---
+    // --- Weather State ---
     const [showWeatherModal, setShowWeatherModal] = useState(false);
     const [weatherData, setWeatherData] = useState(null);
     const [weatherLoading, setWeatherLoading] = useState(false);
     const [weatherError, setWeatherError] = useState(null);
     const weatherCity = 'College Station'; // Define the city for weather lookup
 
+    // --- Category Configuration ---
+    const categories = [
+        { id: 'all', name: 'All Drinks', color: theme.palette.primary.main },
+        { id: 'milk_tea', name: 'Milk Tea', color: theme.palette.categories?.milkTea || '#e0ba6e' },
+        { id: 'fruit_tea', name: 'Fruit Tea', color: theme.palette.categories?.fruitTea || '#4caf50' },
+        { id: 'classic_tea', name: 'Classic Tea', color: theme.palette.categories?.classicTea || '#1793d1' },
+    ];
+
     // --- Helper Functions ---
     const handleProductClick = (product) => {
         setSelectedProduct(product);
     };
+
     const closePopup = () => {
         setSelectedProduct(null);
     };
-
-    const categories = [
-        {id: 'all', name: 'All Drinks', color: theme.palette.primary.main},
-        {id: 'milk_tea', name: 'Milk Tea', color: theme.palette.categories?.milkTea || '#e0ba6e'},
-        {id: 'fruit_tea', name: 'Fruit Tea', color: theme.palette.categories?.fruitTea || '#4caf50'},
-        {id: 'classic_tea', name: 'Classic Tea', color: theme.palette.categories?.classicTea || '#1793d1'},
-    ];
 
     const handleToggleAllergenInfo = () => {
         setShowAllergenInfo(prev => !prev);
@@ -111,17 +115,15 @@ function KioskView() {
         const taxRate = 0.0825; // Consider making this configurable
         const tax = subtotal * taxRate;
         const total = subtotal + tax;
-        setOrderTotal({subtotal, tax, total});
+        setOrderTotal({ subtotal, tax, total });
     }, [cart]);
 
+    // --- Data Fetching ---
     const fetchInventoryData = async () => {
         try {
-            await fetchInventory(); // We don't seem to use the inventory data directly here yet
-            // console.log('Inventory data fetched');
-        }
-        catch (err) {
+            await fetchInventory();
+        } catch (err) {
             console.error('Error fetching inventory:', err);
-            // Maybe set an error state or show a notification if needed
         }
     };
 
@@ -136,15 +138,12 @@ function KioskView() {
 
             // Fetch initial transaction number state
             const transactions = await fetchTransactions();
-            // Assuming the backend returns sorted transactions with latest first
-            // And the structure is { customer_transaction_num: X }
-            const latestTransactionNum = transactions.length > 0 ? transactions[0].customer_transaction_num : 2000; // Base number before first transaction
+            const latestTransactionNum = transactions.length > 0 ? transactions[0].customer_transaction_num : 2000;
             setTransactionNumber(latestTransactionNum + 1); // Set the *next* number
             console.log('Next transaction number set to:', latestTransactionNum + 1);
 
             await fetchInventoryData(); // Load inventory data
-        }
-        catch (err) {
+        } catch (err) {
             console.error('Error loading initial data:', err);
             setError('Failed to load initial kiosk data. Please try refreshing.');
         } finally {
@@ -160,7 +159,7 @@ function KioskView() {
         calculateTotals();
     }, [cart, calculateTotals]); // `cart` is the dependency here
 
-
+    // --- Category and Product Filtering ---
     const handleCategoryChange = (categoryId) => {
         setActiveCategory(categoryId);
     };
@@ -192,9 +191,17 @@ function KioskView() {
         return filtered;
     };
 
+    // --- Cart Management ---
     const addToCart = (customizedProduct) => {
-        // Generate a unique ID for the cart item (using Date.now() is simple but not foolproof for rapid adds)
-        const cartItemId = Date.now() + Math.random(); // Add random number for better uniqueness
+        // Generate a unique ID for the cart item
+        const cartItemId = Date.now() + Math.random();
+
+        // Process allergens data
+        let allergenInfo = customizedProduct.allergens;
+        // If no allergens or 'None', set it to a specific "allergen-free" indicator
+        if (!allergenInfo || allergenInfo === 'None') {
+            allergenInfo = { type: 'allergen-free', text: 'Allergen-Free' };
+        }
 
         const cartItem = {
             id: cartItemId,
@@ -205,7 +212,7 @@ function KioskView() {
             customizations: customizedProduct.customizations || {}, // Ensure object
             quantity: 1,
             categoryColor: customizedProduct.categoryColor, // Store the category color
-            allergens: customizedProduct.allergens || 'None' // Store allergens if available
+            allergens: allergenInfo // Store allergens with improved structure
         };
 
         setCart(prev => [...prev, cartItem]);
@@ -217,20 +224,18 @@ function KioskView() {
 
     const updateQuantity = (cartItemId, newQuantity) => {
         if (newQuantity < 1) {
-            // Optionally remove item if quantity becomes 0, or just prevent going below 1
-            // removeFromCart(cartItemId);
             return;
         }
         setCart(prevCart => prevCart.map(item =>
             item.id === cartItemId
-                ? {...item, quantity: newQuantity}
+                ? { ...item, quantity: newQuantity }
                 : item
         ));
     };
 
     const clearCart = () => {
         setCart([]);
-        setOrderTotal({subtotal: 0, tax: 0, total: 0}); // Reset totals too
+        setOrderTotal({ subtotal: 0, tax: 0, total: 0 }); // Reset totals too
     };
 
     const getIceText = (iceValue) => {
@@ -250,10 +255,11 @@ function KioskView() {
         }
     };
 
+    // --- Transaction Processing ---
     function getTransactionDateInCDT() {
         const currentDate = new Date();
         // Use toLocaleString for reliable timezone formatting
-        return currentDate.toLocaleString('sv-SE', {timeZone: 'America/Chicago'}).replace(' ', 'T');
+        return currentDate.toLocaleString('sv-SE', { timeZone: 'America/Chicago' }).replace(' ', 'T');
     }
 
     const processPayment = async () => {
@@ -280,7 +286,6 @@ function KioskView() {
                     price: parseFloat(item.price),
                     customizations: item.customizations || {} // Ensure it's an object
                 })),
-                // total: parseFloat(orderTotal.total.toFixed(2)) // Backend might recalculate, maybe not needed? Check API spec
             };
 
             console.log('Processing payment for transaction:', transactionData);
@@ -306,8 +311,7 @@ function KioskView() {
             setProcessingPayment(false);
             setShowConfirmation(true); // Show confirmation dialog
 
-        }
-        catch (err) {
+        } catch (err) {
             console.error('Failed to save transaction:', err);
             // Use the error message from the API if available
             setPaymentError(err.message || 'Error processing transaction. Please check inventory or try again.');
@@ -315,7 +319,6 @@ function KioskView() {
             setPaymentSuccess(false);
         }
     };
-
 
     const handleConfirmationClose = () => {
         setShowConfirmation(false);
@@ -325,7 +328,7 @@ function KioskView() {
         setPaymentSuccess(false); // Reset success state
     };
 
-    // --- NEW: Weather Functions ---
+    // --- Weather Functions ---
     const loadWeatherData = async () => {
         setWeatherLoading(true);
         setWeatherError(null);
@@ -335,8 +338,7 @@ function KioskView() {
             const data = await fetchWeather(weatherCity); // Use the configured city
             console.log('Weather data received:', data);
             setWeatherData(data);
-        }
-        catch (err) {
+        } catch (err) {
             console.error("Weather fetch failed:", err);
             setWeatherError(err.message || 'Could not fetch weather data.');
         } finally {
@@ -346,16 +348,11 @@ function KioskView() {
 
     const handleOpenWeatherModal = () => {
         setShowWeatherModal(true);
-        // Fetch weather data only if it's not already loaded or errored recently
-        // Or simply fetch every time the modal is opened:
         loadWeatherData();
     };
 
     const handleCloseWeatherModal = () => {
         setShowWeatherModal(false);
-        // Optional: Clear weather data/error when closing to force reload next time
-        // setWeatherData(null);
-        // setWeatherError(null);
     };
 
     // --- Loading/Error Checks ---
@@ -369,7 +366,7 @@ function KioskView() {
                 flexDirection: 'column',
                 gap: 2
             }}>
-                <CircularProgress size={60} thickness={4} color="primary"/>
+                <CircularProgress size={60} thickness={4} color="primary" />
                 <Typography variant="h6" color="text.secondary">Loading menu...</Typography>
             </Box>
         );
@@ -377,12 +374,12 @@ function KioskView() {
 
     if (error) {
         return (
-            <Container maxWidth="lg" sx={{mt: 4, textAlign: 'center'}}>
+            <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
                 <Alert severity="error"
-                       sx={{mt: 4, display: 'inline-flex', flexDirection: 'column', alignItems: 'center'}}>
+                       sx={{ mt: 4, display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Typography variant="h6">Error Loading Kiosk</Typography>
-                    <Typography sx={{mt: 1}}>{error}</Typography>
-                    <Button variant="contained" color="primary" onClick={loadInitialData} sx={{mt: 2}}>
+                    <Typography sx={{ mt: 1 }}>{error}</Typography>
+                    <Button variant="contained" color="primary" onClick={loadInitialData} sx={{ mt: 2 }}>
                         Retry
                     </Button>
                 </Alert>
@@ -392,7 +389,7 @@ function KioskView() {
 
     const filteredProducts = getFilteredProducts();
 
-    // --- Render Logic ---
+    // --- Render ---
     return (
         <Box
             sx={{
@@ -411,14 +408,14 @@ function KioskView() {
                     textAlign: 'center',
                     borderBottom: `1px solid ${theme.palette.divider}`,
                     background: `linear-gradient(90deg, ${theme.palette.primary.main}20 0%, ${theme.palette.secondary.main}20 100%)`,
-                    position: 'relative', // <-- Needed for absolute positioning of the button
+                    position: 'relative', // Needed for absolute positioning of the button
                     flexShrink: 0 // Prevent header from shrinking
                 }}
             >
                 <Typography
                     variant="h3"
                     component="h1"
-                    sx={{fontWeight: 700, color: 'text.primary', mb: 1, textShadow: '0 2px 10px rgba(0,0,0,0.3)'}}
+                    sx={{ fontWeight: 700, color: 'text.primary', mb: 1, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}
                 >
                     🧋 Sharetea Kiosk 🧋
                 </Typography>
@@ -426,30 +423,29 @@ function KioskView() {
                     Customize and order your favorite bubble tea!
                 </Typography>
 
-                {/* --- NEW: Weather Button --- */}
+                {/* Weather Button */}
                 <IconButton
                     aria-label="show weather"
                     onClick={handleOpenWeatherModal}
                     sx={{
                         position: 'absolute',
-                        top: {xs: 8, sm: 16}, // Adjust for different screen sizes
-                        right: {xs: 8, sm: 16},
+                        top: { xs: 8, sm: 16 }, // Adjust for different screen sizes
+                        right: { xs: 8, sm: 16 },
                         color: 'white',
                         bgcolor: 'rgba(0, 0, 0, 0.2)',
                         transition: 'background-color 0.3s',
                         zIndex: 2, // Ensure button is above the back button
-                        pointerEvents: 'auto', // Make sure clicks register 
+                        pointerEvents: 'auto', // Make sure clicks register
                         '&:hover': {
                             bgcolor: 'rgba(0, 0, 0, 0.4)',
                         }
                     }}
                     title={`Weather in ${weatherCity}`} // Tooltip
                 >
-                    <WeatherIcon/>
+                    <WeatherIcon />
                 </IconButton>
-                {/* --- End Weather Button --- */}
 
-                {/* --- NEW: Allergen Information Button --- */}
+                {/* Allergen Information Button */}
                 <IconButton
                     aria-label="allergen information"
                     onClick={handleToggleAllergenInfo}
@@ -470,6 +466,8 @@ function KioskView() {
                 >
                     <InfoIcon />
                 </IconButton>
+
+                {/* Allergen Info Dialog - Updated with icons */}
                 <Dialog
                     open={showAllergenInfo}
                     onClose={() => setShowAllergenInfo(false)}
@@ -481,25 +479,46 @@ function KioskView() {
                     </DialogTitle>
                     <DialogContent dividers>
                         <Typography variant="body1" paragraph>
-                            We want to make sure you're aware of any potential allergens in our products. Please note the following:
+                            We want to make sure you're aware of any potential allergens in our products:
                         </Typography>
-                        <Box component="ul" sx={{ pl: 2 }}>
-                            <Box component="li" sx={{ mb: 1 }}>
-                                <Typography variant="body1" fontWeight={500}>
-                                    Dairy: All "Milk Tea" drinks contain dairy products.
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', p: 1, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2 }}>
+                                    <LuMilk size={24} color={theme.palette.warning.main} />
+                                </Box>
+                                <Typography variant="body1">
+                                    <strong>Dairy:</strong> All "Milk Tea" drinks contain dairy products.
                                 </Typography>
                             </Box>
-                            <Box component="li" sx={{ mb: 1 }}>
-                                <Typography variant="body1" fontWeight={500}>
-                                    Nuts: Some drinks may contain nuts or be processed in facilities that handle nuts.
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', p: 1, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2 }}>
+                                    <GiPeanut size={24} color={theme.palette.warning.main} />
+                                </Box>
+                                <Typography variant="body1">
+                                    <strong>Nuts:</strong> Some drinks may contain nuts or be processed in facilities that handle nuts.
                                 </Typography>
                             </Box>
-                            <Box component="li" sx={{ mb: 1 }}>
-                                <Typography variant="body1" fontWeight={500}>
-                                    Honey: Some of our teas contain honey.
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', p: 1, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2 }}>
+                                    <SiHoneygain size={24} color={theme.palette.warning.main} />
+                                </Box>
+                                <Typography variant="body1">
+                                    <strong>Honey:</strong> Some of our teas contain honey.
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ display: 'flex', p: 1, bgcolor: 'rgba(0,0,0,0.05)', borderRadius: 2 }}>
+                                    <MdOutlineNoFood size={24} color={theme.palette.success.main} />
+                                </Box>
+                                <Typography variant="body1">
+                                    <strong>Allergen-Free:</strong> Drinks marked with this icon contain no known common allergens.
                                 </Typography>
                             </Box>
                         </Box>
+
                         <Typography variant="body1" paragraph sx={{ mt: 2 }}>
                             If you have any allergies or dietary restrictions, please inform our staff before ordering.
                         </Typography>
@@ -512,15 +531,15 @@ function KioskView() {
                 </Dialog>
             </Box>
 
-            <Box sx={{display: 'flex', flexGrow: 1, overflow: 'hidden' /* Prevent outer scroll */}}>
+            <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' /* Prevent outer scroll */ }}>
                 {/* Left side - Products catalog */}
                 <Box
                     sx={{
-                        width: {xs: '100%', md: '65%'}, // Responsive width
+                        width: { xs: '100%', md: '65%' }, // Responsive width
                         height: '100%', // Fill available height
                         display: 'flex',
                         flexDirection: 'column',
-                        p: {xs: 1, sm: 2, md: 3}, // Responsive padding
+                        p: { xs: 1, sm: 2, md: 3 }, // Responsive padding
                         overflow: 'hidden' // Prevent internal scrollbars here, handled by inner Box
                     }}
                 >
@@ -538,11 +557,11 @@ function KioskView() {
                             flexShrink: 0
                         }}
                     >
-                        <IconButton sx={{p: '10px'}} aria-label="search">
-                            <SearchIcon/>
+                        <IconButton sx={{ p: '10px' }} aria-label="search">
+                            <SearchIcon />
                         </IconButton>
                         <InputBase
-                            sx={{ml: 1, flex: 1}}
+                            sx={{ ml: 1, flex: 1 }}
                             placeholder="Search for a drink..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -550,28 +569,12 @@ function KioskView() {
                     </Paper>
 
                     {/* Category selector */}
-                    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3, flexShrink: 0}}>
-                        {categories.map((category, index) => (
-                            <Fade in={true} key={category.id} style={{transitionDelay: `${index * 50}ms`}}>
-                                <Chip
-                                    label={category.name}
-                                    onClick={() => handleCategoryChange(category.id)}
-                                    color={activeCategory === category.id ? 'secondary' : 'default'}
-                                    variant={activeCategory === category.id ? 'filled' : 'outlined'}
-                                    sx={{
-                                        borderRadius: 6,
-                                        px: 2,
-                                        py: {xs: 1.5, sm: 3},
-                                        fontSize: {xs: '0.8rem', sm: '1rem'},
-                                        fontWeight: activeCategory === category.id ? 600 : 400, ...(category.color && activeCategory !== category.id ? {
-                                            color: category.color,
-                                            borderColor: category.color
-                                        } : {})
-                                    }}
-                                />
-                            </Fade>
-                        ))}
-                    </Box>
+                    <CategorySelector
+                        categories={categories}
+                        activeCategory={activeCategory}
+                        handleCategoryChange={handleCategoryChange}
+                        theme={theme}
+                    />
 
                     {/* Products grid - Make this scrollable */}
                     <Box
@@ -579,186 +582,30 @@ function KioskView() {
                             overflowY: 'auto', // Enable vertical scroll
                             pr: 2, // Padding for scrollbar
                             flexGrow: 1, // Take remaining space
-                            '&::-webkit-scrollbar': {width: '8px'},
+                            '&::-webkit-scrollbar': { width: '8px' },
                             '&::-webkit-scrollbar-thumb': {
                                 backgroundColor: 'rgba(255,255,255,0.2)',
                                 borderRadius: '4px'
                             },
-                            '&::-webkit-scrollbar-track': {backgroundColor: 'rgba(0,0,0,0.1)'}
+                            '&::-webkit-scrollbar-track': { backgroundColor: 'rgba(0,0,0,0.1)' }
                         }}
                     >
-                        <Grid container spacing={{xs: 1, sm: 2, md: 3}}>
+                        <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
                             {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product, index) => {
-                                    const categoryColor = getCategoryColor(product);
-                                    const categoryKey = product.category_id || product.product_type;
-                                    let categoryName = "bubble tea";
-                                    if (categoryKey) {
-                                        const normalized = categoryKey.toLowerCase().replace(/\s+/g, '_');
-                                        const category = categories.find(cat => cat.id === normalized);
-                                        if (category) categoryName = category.name.toLowerCase();
-                                    }
-
-                                    return (
-                                        <Grid item xs={6} sm={6} md={4} key={product.product_id}>
-                                            <Fade in={true} style={{transitionDelay: `${index * 30}ms`}}>
-                                                <Card
-                                                    sx={{
-                                                        height: 320, // Fixed height for all cards
-                                                        width: '100%', // Full width of grid item
-                                                        borderRadius: 4,
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        background: `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
-                                                        boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-                                                        border: `1px solid ${categoryColor}30`,
-                                                        transition: 'all 0.3s ease',
-                                                        '&:hover': {
-                                                            transform: 'translateY(-5px)',
-                                                            boxShadow: `0 10px 24px ${categoryColor}40`,
-                                                            borderColor: categoryColor
-                                                        }
-                                                    }}
-                                                >
-                                                    <CardActionArea
-                                                        onClick={() => handleProductClick({ ...product, categoryColor, allergens: product.allergens})}
-                                                        sx={{ height: '100%', p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                                                    >
-                                                        <Box
-                                                            sx={{
-                                                                width: '100%',
-                                                                height: 160, // Fixed height for image container
-                                                                position: 'relative',
-                                                                mb: 2,
-                                                                display: 'flex',
-                                                                justifyContent: 'center',
-                                                                alignItems: 'center',
-                                                                flexShrink: 0 // Prevent shrinking
-                                                            }}
-                                                        >
-                                                            <Box
-                                                                sx={{
-                                                                    width: 140, // Fixed width container
-                                                                    height: 140, // Fixed height container
-                                                                    display: 'flex',
-                                                                    justifyContent: 'center',
-                                                                    alignItems: 'center'
-                                                                }}
-                                                            >
-                                                                <ProductImage
-                                                                    productId={product.product_id}
-                                                                    productName={product.product_name}
-                                                                    categoryName={categoryName}
-                                                                    height={140} // Fixed height
-                                                                    style={{
-                                                                        borderRadius: 8,
-                                                                        backgroundColor: 'rgba(0,0,0,0.1)',
-                                                                        objectFit: 'contain', // Ensure image maintains aspect ratio
-                                                                        maxWidth: '100%',
-                                                                        maxHeight: '100%'
-                                                                    }}
-                                                                />
-                                                            </Box>
-                                                            <Box sx={{
-                                                                position: 'absolute',
-                                                                top: 8,
-                                                                left: 8,
-                                                                bgcolor: 'rgba(0,0,0,0.6)',
-                                                                color: 'white',
-                                                                px: 1,
-                                                                py: 0.25,
-                                                                borderRadius: 1,
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 'bold',
-                                                                zIndex: 2
-                                                            }}>
-                                                                #{product.product_id}
-                                                            </Box>
-
-                                                            {/* NEW: Allergen Warning */}
-                                                            {product.allergens && product.allergens !== 'None' && (
-                                                                <Box
-                                                                    sx={{
-                                                                        position: 'absolute',
-                                                                        top: 8,
-                                                                        right: 8,
-                                                                        bgcolor: 'rgba(255,152,0,0.9)',
-                                                                        color: 'white',
-                                                                        px: 1,
-                                                                        py: 0.25,
-                                                                        borderRadius: 1,
-                                                                        fontSize: '0.75rem',
-                                                                        fontWeight: 'bold',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        gap: 0.5,
-                                                                        zIndex: 2
-                                                                    }}
-                                                                    title={`Contains allergens: ${product.allergens}`}
-                                                                >
-                                                                    <WarningIcon fontSize="inherit" />
-                                                                    <span>Allergen</span>
-                                                                </Box>
-                                                            )}
-                                                        </Box>
-                                                        <CardContent
-                                                            sx={{
-                                                                p: 1,
-                                                                width: '100%',
-                                                                textAlign: 'center',
-                                                                flexGrow: 1, // Take remaining space
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                justifyContent: 'space-between'
-                                                            }}
-                                                        >
-                                                            <Typography
-                                                                variant="h6"
-                                                                component="div"
-                                                                sx={{
-                                                                    fontWeight: 600,
-                                                                    mb: 1,
-                                                                    fontSize: {xs: '1rem', sm: '1.25rem'},
-                                                                    maxHeight: '2.5rem', // Limit to 2 lines approximately
-                                                                    overflow: 'hidden',
-                                                                    display: '-webkit-box',
-                                                                    WebkitLineClamp: 2,
-                                                                    WebkitBoxOrient: 'vertical',
-                                                                    textOverflow: 'ellipsis'
-                                                                }}
-                                                            >
-                                                                {product.product_name}
-                                                            </Typography>
-                                                            <Box sx={{
-                                                                display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                alignItems: 'center',
-                                                                mt: 1,
-                                                                width: '100%'
-                                                            }}>
-                                                                <Typography variant="h5" sx={{
-                                                                    fontWeight: 700,
-                                                                    color: categoryColor,
-                                                                    fontSize: {xs: '1.1rem', sm: '1.5rem'}
-                                                                }}>
-                                                                    ${product.product_cost.toFixed(2)}
-                                                                </Typography>
-                                                                <Chip label="ADD" size="small" sx={{
-                                                                    borderRadius: 3,
-                                                                    bgcolor: categoryColor,
-                                                                    color: '#000',
-                                                                    fontWeight: 'bold'
-                                                                }}/>
-                                                            </Box>
-                                                        </CardContent>
-                                                    </CardActionArea>
-                                                </Card>
-                                            </Fade>
-                                        </Grid>
-                                    );
-                                })
+                                filteredProducts.map((product, index) => (
+                                    <Grid item xs={6} sm={6} md={4} key={product.product_id}>
+                                        <ProductCard
+                                            product={product}
+                                            index={index}
+                                            handleProductClick={handleProductClick}
+                                            getCategoryColor={getCategoryColor}
+                                            categories={categories}
+                                            theme={theme}
+                                        />
+                                    </Grid>
+                                ))
                             ) : (
-                                <Box sx={{width: '100%', textAlign: 'center', mt: 4, p: 3}}>
+                                <Box sx={{ width: '100%', textAlign: 'center', mt: 4, p: 3 }}>
                                     <Typography variant="h6" color="text.secondary">
                                         No products found matching your criteria.
                                     </Typography>
@@ -771,10 +618,10 @@ function KioskView() {
                 {/* Right side - Order summary */}
                 <Box
                     sx={{
-                        width: {xs: '100%', md: '35%'}, // Responsive width
+                        width: { xs: '100%', md: '35%' }, // Responsive width
                         height: '100%', // Fill height
                         boxShadow: '-4px 0 15px rgba(0,0,0,0.1)',
-                        borderLeft: {xs: 'none', md: `1px solid ${theme.palette.divider}`},
+                        borderLeft: { xs: 'none', md: `1px solid ${theme.palette.divider}` },
                         display: 'flex',
                         flexDirection: 'column',
                         bgcolor: 'background.paper',
@@ -790,17 +637,19 @@ function KioskView() {
                         gap: 2,
                         flexShrink: 0
                     }}>
-                        <CartIcon color="primary"/>
-                        <Typography variant="h5" sx={{fontWeight: 600}}>Your Order</Typography>
+                        <CartIcon color="primary" />
+                        <Typography variant="h5" sx={{ fontWeight: 600 }}>Your Order</Typography>
                         <Chip label={`${cart.reduce((acc, item) => acc + item.quantity, 0)} item(s)`} size="small"
-                              color="primary" sx={{ml: 'auto'}}/>
+                              color="primary" sx={{ ml: 'auto' }} />
                     </Paper>
 
                     {/* Cart items - Make this scrollable */}
                     <Box sx={{
-                        flexGrow: 1, overflowY: 'auto', p: 2,
-                        '&::-webkit-scrollbar': {width: '6px'},
-                        '&::-webkit-scrollbar-thumb': {backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '3px'}
+                        flexGrow: 1,
+                        overflowY: 'auto',
+                        p: 2,
+                        '&::-webkit-scrollbar': { width: '6px' },
+                        '&::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '3px' }
                     }}>
                         {cart.length === 0 ? (
                             <Box sx={{
@@ -812,165 +661,35 @@ function KioskView() {
                                 py: 8,
                                 textAlign: 'center'
                             }}>
-                                <CartIcon sx={{fontSize: 60, color: 'action.disabled', mb: 2}}/>
-                                <Typography variant="h6" color="text.secondary" gutterBottom>Your cart is
-                                    empty</Typography>
+                                <CartIcon sx={{ fontSize: 60, color: 'action.disabled', mb: 2 }} />
+                                <Typography variant="h6" color="text.secondary" gutterBottom>Your cart is empty</Typography>
                                 <Typography variant="body2" color="text.secondary">Add items from the menu!</Typography>
                             </Box>
                         ) : (
-                            <List sx={{pt: 0}}>
+                            <List sx={{ pt: 0 }}>
                                 {cart.map(item => (
-                                    <ListItem key={item.id} disablePadding
-                                              sx={{mb: 2, pb: 2, borderBottom: `1px solid ${theme.palette.divider}`}}>
-                                        <Box sx={{width: '100%'}}>
-                                            <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 1}}>
-                                                <Typography variant="body1" sx={{fontWeight: 500, pr: 1}}>
-                                                    <strong>#{item.code}</strong> - {item.name}
-                                                </Typography>
-                                                <Typography variant="body1" sx={{
-                                                    fontWeight: 600,
-                                                    color: item.categoryColor || theme.palette.primary.main,
-                                                    whiteSpace: 'nowrap'
-                                                }}>
-                                                    ${(item.price * item.quantity).toFixed(2)}
-                                                </Typography>
-                                            </Box>
-
-                                            {item.allergens && item.allergens !== 'None' && (
-                                                <Chip
-                                                    icon={<WarningIcon fontSize="small" />}
-                                                    label={`Allergens: ${item.allergens}`}
-                                                    size="small"
-                                                    color="warning"
-                                                    variant="outlined"
-                                                    sx={{ mb: 1, fontWeight: 500, fontSize: '0.7rem' }}
-                                                />
-                                            )}
-
-                                            {(item.customizations.sugar !== undefined || item.customizations.ice !== undefined || (item.customizations.toppings && Object.keys(item.customizations.toppings).length > 0)) && (
-                                                <Paper variant="outlined" sx={{
-                                                    p: 1,
-                                                    mb: 1.5,
-                                                    borderRadius: 2,
-                                                    bgcolor: 'rgba(0,0,0,0.03)',
-                                                    borderColor: item.categoryColor ? `${item.categoryColor}40` : 'rgba(0,0,0,0.1)'
-                                                }}>
-                                                    {item.customizations.sugar !== undefined && (
-                                                        <Typography variant="caption" display="block"
-                                                                    color="text.secondary">
-                                                            <strong>Sugar:</strong> {item.customizations.sugar}%
-                                                        </Typography>
-                                                    )}
-                                                    {item.customizations.ice !== undefined && (
-                                                        <Typography variant="caption" display="block"
-                                                                    color="text.secondary">
-                                                            <strong>Ice:</strong> {getIceText(item.customizations.ice)}
-                                                        </Typography>
-                                                    )}
-                                                    {item.customizations.toppings && Object.keys(item.customizations.toppings).length > 0 && (
-                                                        <Typography variant="caption" display="block"
-                                                                    color="text.secondary">
-                                                            <strong>Toppings:</strong> {Object.entries(item.customizations.toppings).map(([name, amount]) => `${name}${amount > 1 ? ` (${amount})` : ''}`).join(', ')}
-                                                        </Typography>
-                                                    )}
-                                                </Paper>
-                                            )}
-
-
-                                            <Box sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between'
-                                            }}>
-                                                <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                                    <IconButton size="small"
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                                disabled={item.quantity <= 1} color="inherit"
-                                                                sx={{borderRadius: 2, bgcolor: 'action.hover'}}>
-                                                        <RemoveIcon fontSize="small"/>
-                                                    </IconButton>
-                                                    <Typography variant="body1" sx={{
-                                                        mx: 1,
-                                                        fontWeight: 600,
-                                                        minWidth: '20px',
-                                                        textAlign: 'center'
-                                                    }}>
-                                                        {item.quantity}
-                                                    </Typography>
-                                                    <IconButton size="small"
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                color="inherit"
-                                                                sx={{borderRadius: 2, bgcolor: 'action.hover'}}>
-                                                        <AddIcon fontSize="small"/>
-                                                    </IconButton>
-                                                </Box>
-                                                <IconButton size="small" onClick={() => removeFromCart(item.id)}
-                                                            color="error" sx={{borderRadius: 2}} title="Remove Item">
-                                                    <DeleteIcon fontSize="small"/>
-                                                </IconButton>
-                                            </Box>
-                                        </Box>
-                                    </ListItem>
+                                    <CartItem
+                                        key={item.id}
+                                        item={item}
+                                        updateQuantity={updateQuantity}
+                                        removeFromCart={removeFromCart}
+                                        getIceText={getIceText}
+                                        theme={theme}
+                                    />
                                 ))}
                             </List>
                         )}
                     </Box>
 
                     {/* Order summary and checkout */}
-                    <Box sx={{p: 3, borderTop: `1px solid ${theme.palette.divider}`, flexShrink: 0}}>
-                        <Box sx={{mb: 2}}>
-                            <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 0.5}}>
-                                <Typography variant="body1" color="text.secondary">Subtotal:</Typography>
-                                <Typography variant="body1">${orderTotal.subtotal.toFixed(2)}</Typography>
-                            </Box>
-                            <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 1}}>
-                                <Typography variant="body1" color="text.secondary">Tax (8.25%):</Typography>
-                                <Typography variant="body1">${orderTotal.tax.toFixed(2)}</Typography>
-                            </Box>
-                            <Divider sx={{my: 1.5}}/>
-                            <Box sx={{display: 'flex', justifyContent: 'space-between'}}>
-                                <Typography variant="h6">Total:</Typography>
-                                <Typography variant="h6" color="primary" sx={{fontWeight: 600}}>
-                                    ${orderTotal.total.toFixed(2)}
-                                </Typography>
-                            </Box>
-                        </Box>
-
-                        <Box sx={{display: 'flex', flexDirection: 'column', gap: 1.5}}>
-                            {paymentError && (
-                                <Alert severity="error" sx={{width: '100%'}}>
-                                    {paymentError}
-                                </Alert>
-                            )}
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                size="large"
-                                disabled={cart.length === 0 || processingPayment}
-                                onClick={processPayment}
-                                startIcon={processingPayment ? <CircularProgress size={24} color="inherit"/> :
-                                    <PaymentIcon/>}
-                                sx={{
-                                    py: 1.5,
-                                    borderRadius: 3,
-                                    boxShadow: 'none',
-                                    '&:hover': {boxShadow: '0 4px 8px rgba(0,0,0,0.2)'}
-                                }}
-                            >
-                                {processingPayment ? 'Processing...' : `Checkout • $${orderTotal.total.toFixed(2)}`}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                disabled={cart.length === 0 || processingPayment}
-                                onClick={clearCart}
-                                startIcon={<CancelIcon/>}
-                                sx={{borderRadius: 3}}
-                            >
-                                Clear Order
-                            </Button>
-                        </Box>
-                    </Box>
+                    <OrderSummary
+                        orderTotal={orderTotal}
+                        cart={cart}
+                        processingPayment={processingPayment}
+                        paymentError={paymentError}
+                        processPayment={processPayment}
+                        clearCart={clearCart}
+                    />
                 </Box>
             </Box>
 
@@ -980,7 +699,7 @@ function KioskView() {
                     product={selectedProduct}
                     onClose={closePopup}
                     onConfirm={(customizedProduct) => {
-                        addToCart({...customizedProduct, categoryColor: selectedProduct.categoryColor});
+                        addToCart({ ...customizedProduct, categoryColor: selectedProduct.categoryColor });
                         closePopup();
                     }}
                 />
@@ -992,7 +711,7 @@ function KioskView() {
                 onClose={handleConfirmationClose} // Allow closing by clicking away or pressing Esc
                 fullWidth
                 maxWidth="sm" // Adjusted size
-                PaperProps={{sx: {borderRadius: 4, bgcolor: 'background.default'}}}
+                PaperProps={{ sx: { borderRadius: 4, bgcolor: 'background.default' } }}
             >
                 <DialogTitle sx={{
                     textAlign: 'center',
@@ -1005,16 +724,14 @@ function KioskView() {
                 </DialogTitle>
                 <DialogContent>
                     {currentOrder && (
-                        <Box sx={{textAlign: 'center', py: 1}}>
+                        <Box sx={{ textAlign: 'center', py: 1 }}>
                             <Typography variant="h5" gutterBottom>Thank you!</Typography>
-                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', my: 2}}>
-                                <ReceiptIcon sx={{fontSize: 40, color: theme.palette.primary.main, mr: 1.5}}/>
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 2 }}>
+                                <ReceiptIcon sx={{ fontSize: 40, color: theme.palette.primary.main, mr: 1.5 }} />
                                 <Typography variant="h4">#{currentOrder.receiptNumber}</Typography>
                             </Box>
-                            <Typography variant="body1" sx={{mb: 2}}>Your order is being prepared.</Typography>
-                            <Divider sx={{my: 2}}/>
-                            <Typography variant="h6" gutterBottom>Order Summary</Typography>
-                            <Box sx={{my: 2, textAlign: 'left', px: 2}}>
+                            <Typography variant="body1" sx={{ mb: 2 }}>Your order is being prepared.</Typography>
+                            <Box sx={{ my: 2, textAlign: 'left', px: 2 }}>
                                 {currentOrder.items.map((item, index) => (
                                     <Box key={index} sx={{
                                         display: 'flex',
@@ -1042,82 +759,24 @@ function KioskView() {
                         </Box>
                     )}
                 </DialogContent>
-                <DialogActions sx={{justifyContent: 'center', pb: 3}}>
+                <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
                     <Button variant="contained" color="primary" size="large" onClick={handleConfirmationClose}
-                            sx={{minWidth: 180, borderRadius: 2, py: 1}}>
+                            sx={{ minWidth: 180, borderRadius: 2, py: 1 }}>
                         Start New Order
                     </Button>
                 </DialogActions>
             </Dialog>
 
-
-            {/* --- NEW: Weather Modal Dialog --- */}
-            <Dialog
+            {/* Weather Modal */}
+            <WeatherModal
                 open={showWeatherModal}
                 onClose={handleCloseWeatherModal}
-                aria-labelledby="weather-dialog-title"
-                PaperProps={{sx: {borderRadius: 3, minWidth: '300px', bgcolor: 'background.paper'}}}
-            >
-                <DialogTitle id="weather-dialog-title"
-                             sx={{textAlign: 'center', fontWeight: 'bold', pb: 1, color: theme.palette.primary.main}}>
-                    Weather in {weatherCity}
-                </DialogTitle>
-                <DialogContent dividers sx={{
-                    minHeight: 180,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                }}>
-                    {weatherLoading && (
-                        <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1}}>
-                            <CircularProgress color="primary"/>
-                        </Box>
-                    )}
-                    {weatherError && !weatherLoading && (
-                        <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1}}>
-                            <Alert severity="warning" sx={{width: '100%'}}>
-                                {weatherError}
-                            </Alert>
-                        </Box>
-                    )}
-                    {weatherData && !weatherLoading && !weatherError && (
-                        <Box sx={{textAlign: 'center', py: 1}}>
-                            <Typography variant="h3" gutterBottom
-                                        sx={{fontWeight: 600, color: theme.palette.primary.main}}>
-                                {Math.round(weatherData.main.temp)}°F
-                            </Typography>
-                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 1}}>
-                                {weatherData.weather[0].icon && (
-                                    <img
-                                        src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
-                                        alt={weatherData.weather[0].description}
-                                        style={{width: 60, height: 60, verticalAlign: 'middle'}}
-                                    />
-                                )}
-                                <Typography variant="h6" sx={{textTransform: 'capitalize', ml: 1}}>
-                                    {weatherData.weather[0].description}
-                                </Typography>
-                            </Box>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Feels like: {Math.round(weatherData.main.feels_like)}°F
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Humidity: {weatherData.main.humidity}%
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Wind: {Math.round(weatherData.wind.speed)} mph
-                            </Typography>
-                        </Box>
-                    )}
-                </DialogContent>
-                <DialogActions sx={{justifyContent: 'center', p: 1.5}}>
-                    <Button onClick={handleCloseWeatherModal} variant="outlined" color="primary">
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {/* --- End Weather Modal Dialog --- */}
-
+                weatherData={weatherData}
+                weatherLoading={weatherLoading}
+                weatherError={weatherError}
+                weatherCity={weatherCity}
+                theme={theme}
+            />
 
             {/* Payment Success Snackbar */}
             <Snackbar
@@ -1125,10 +784,9 @@ function KioskView() {
                 autoHideDuration={4000} // Slightly longer duration
                 onClose={() => setPaymentSuccess(false)}
                 message="Payment processed successfully!"
-                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} // Position at bottom center
-                sx={{'& .MuiSnackbarContent-root': {backgroundColor: 'success.main'}}} // Green background
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} // Position at bottom center
+                sx={{ '& .MuiSnackbarContent-root': { backgroundColor: 'success.main' } }} // Green background
             />
-
         </Box>
     );
 }
