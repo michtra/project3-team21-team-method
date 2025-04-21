@@ -25,9 +25,15 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Method POS System</title>
+     <!-- Add Google Translate Meta Tag to prevent the default top banner -->
+     <meta name="google-translate-customization" content="YOUR_META_TAG_CONTENT_IF_YOU_HAVE_ONE"></meta>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+
+    <!-- Placeholder for Google Translate Widget -->
+    <div id="google_translate_element" style="position:absolute; top:15px; left:15px; z-index: 1000;"></div> <!-- Initial position, CSS overrides this -->
+
     <div id="root"></div>
     <!--
       This HTML file is a template.
@@ -39,5 +45,25 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <!-- Google Translate Initialization -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: 'en', // Set the default language of your page
+            // **** ADD THIS LINE ****
+            includedLanguages: 'ar,zh-CN,en,fr,hi,ja,ko,es,ru,vi', // Comma-separated list of desired language codes
+            // ***********************
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE, // Use a simple dropdown
+            autoDisplay: false // Prevent the banner on top
+          },
+          'google_translate_element' // The ID of the div placeholder
+        );
+      }
+    </script>
+    <!-- Google Translate Script -->
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
   </body>
 </html>
