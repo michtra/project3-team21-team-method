@@ -18,8 +18,8 @@ import {
     SupervisorAccount as ManagerIcon,
     ShoppingCart as CartIcon,
     ArrowBack as BackIcon,
-    Login as LoginIcon,
-    Logout as LogoutIcon
+    Logout as LogoutIcon,
+    LockOutlined as LockIcon
 } from '@mui/icons-material';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -93,28 +93,32 @@ function App() {
             title: 'Customer Kiosk',
             icon: <CoffeeIcon fontSize="large"/>,
             color: theme.palette.primary.main,
-            description: 'Self-service ordering for customers'
+            description: 'Self-service ordering for customers',
+            requiresAuth: false
         },
         {
             id: 'menuBoard',
             title: 'Menu Board',
             icon: <MenuIcon fontSize="large"/>,
             color: theme.palette.secondary.light,
-            description: 'Digital menu display for screens'
+            description: 'Digital menu display for screens',
+            requiresAuth: false
         },
         {
             id: 'manager',
             title: 'Manager Dashboard',
             icon: <ManagerIcon fontSize="large"/>,
             color: theme.palette.warning.main,
-            description: 'Sales reports and system management'
+            description: 'Sales reports and system management (Login required)',
+            requiresAuth: true
         },
         {
             id: 'cashier',
             title: 'Cashier System',
             icon: <CartIcon fontSize="large"/>,
             color: theme.palette.success.main,
-            description: 'Process orders and payments'
+            description: 'Process orders and payments (Login required)',
+            requiresAuth: true
         }
     ];
 
@@ -143,16 +147,7 @@ function App() {
                         Method POS System
                     </Typography>
 
-                    {!user ? (
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={<LoginIcon/>}
-                            onClick={handleLogin}
-                        >
-                            Log in with Google
-                        </Button>
-                    ) : (
+                    {user && (
                         <Box sx={{
                             mb: 4,
                             display: 'flex',
@@ -216,7 +211,14 @@ function App() {
                                     }}
                                 >
                                     <CardActionArea
-                                        onClick={() => setCurrentView(card.id)}
+                                        onClick={() => {
+                                            if ((card.id === 'manager' || card.id === 'cashier') && !user) {
+                                                // Redirect to login if trying to access protected views without auth
+                                                handleLogin();
+                                            } else {
+                                                setCurrentView(card.id);
+                                            }
+                                        }}
                                         sx={{
                                             height: '100%',
                                             width: '100%',
@@ -251,6 +253,23 @@ function App() {
                                             {card.icon}
                                         </Box>
 
+                                        {/* Lock icon for auth-protected views */}
+                                        {card.requiresAuth && !user && (
+                                            <Box sx={{
+                                                position: 'absolute',
+                                                top: 12,
+                                                right: 12,
+                                                bgcolor: 'rgba(0,0,0,0.1)',
+                                                borderRadius: '50%',
+                                                padding: 0.5,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <LockIcon fontSize="small" />
+                                            </Box>
+                                        )}
+                                        
                                         {/* Card content - Enhanced typography */}
                                         <CardContent sx={{
                                             textAlign: 'center',
@@ -308,6 +327,13 @@ function App() {
     );
 
     const renderView = () => {
+        // Check for protected views and redirect to login if not authenticated
+        if ((currentView === 'manager' || currentView === 'cashier') && !user) {
+            // Force login for protected views
+            handleLogin();
+            return renderMainMenu();
+        }
+        
         switch (currentView) {
             case 'kiosk':
                 return <KioskView/>;

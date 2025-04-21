@@ -38,6 +38,13 @@ This guide focuses on setting up the development environment. Production deploym
    - Replace the values in quotes with our actual database information
    - Do NOT include angle brackets (<>) as they cause JavaScript parsing errors
 
+### OAuth2 Setup
+[Google OAuth](https://developers.google.com/identity/protocols/oauth2) must be set up before using the project for the authentication parts.
+
+- Ensure that the client ID has the authorized redirect URLs set:
+  - http://localhost:3000/oauth2callback
+  - and optionally, for production: https://<domain>/oauth2callback
+
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
