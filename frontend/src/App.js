@@ -1,6 +1,6 @@
-// App.js (Simplified)
-import React, {useState, useEffect} from 'react';
-import {ThemeProvider} from '@mui/material/styles';
+// App.js (Modified with Accessibility Integration)
+import React, { useState, useEffect, useCallback } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {
     Box,
@@ -22,18 +22,26 @@ import {
     Logout as LogoutIcon
 } from '@mui/icons-material';
 
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import theme from './theme';
 import KioskView from './views/KioskView';
 import ManagerView from './views/ManagerView';
 import CashierView from './views/CashierViews';
 import MenuBoardView from './views/MenuBoardView';
 import OAuthCallback from './OAuthCallback';
-import {getAuthUrl, logout, getUserFromStorage} from './authService';
+import { getAuthUrl, logout, getUserFromStorage } from './authService';
+import AccessibilityWidget from './components/AccessibilityWidget';
 
 function App() {
     const [currentView, setCurrentView] = useState('main');
     const [user, setUser] = useState(null);
+    const [currentTheme, setCurrentTheme] = useState(theme);
+
+    // Handle theme changes from accessibility widget
+    // Wrap in useCallback to prevent unnecessary re-renders
+    const handleThemeChange = useCallback((newTheme) => {
+        setCurrentTheme(newTheme);
+    }, []);
 
     // check for login on initial load
     useEffect(() => {
@@ -44,7 +52,6 @@ function App() {
     }, []);
 
     // use a listener to detect when localStorage/sessionStorage changes
-    // avoid logging in twice :P
     useEffect(() => {
         function handleStorageChange() {
             const storedUser = getUserFromStorage();
@@ -82,25 +89,29 @@ function App() {
             id: 'kiosk',
             title: 'Customer Kiosk',
             icon: <CoffeeIcon fontSize="large"/>,
-            color: theme.palette.primary.main
+            color: theme.palette.primary.main,
+            description: 'Self-service ordering for customers'
         },
         {
             id: 'menuBoard',
             title: 'Menu Board',
             icon: <MenuIcon fontSize="large"/>,
-            color: theme.palette.secondary.light
+            color: theme.palette.secondary.light,
+            description: 'Digital menu display for screens'
         },
         {
             id: 'manager',
             title: 'Manager Dashboard',
             icon: <ManagerIcon fontSize="large"/>,
-            color: theme.palette.warning.main
+            color: theme.palette.warning.main,
+            description: 'Sales reports and system management'
         },
         {
             id: 'cashier',
             title: 'Cashier System',
             icon: <CartIcon fontSize="large"/>,
-            color: theme.palette.success.main
+            color: theme.palette.success.main,
+            description: 'Process orders and payments'
         }
     ];
 
@@ -308,9 +319,58 @@ function App() {
         }
     };
 
+    // Add a global MutationObserver to handle font size adjustments for dynamically added elements
+    useEffect(() => {
+        // Function to apply font size to new elements
+        const applyFontSizeToNewElements = (mutations) => {
+            const fontScale = document.body.getAttribute('data-font-scale');
+            if (!fontScale) return; // No custom font size is set
+
+            const scale = parseFloat(fontScale);
+            if (isNaN(scale) || scale === 1) return; // Default or invalid scale
+
+            mutations.forEach(mutation => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1) { // ELEMENT_NODE
+                            // Apply to the element itself if it's a text element
+                            if (node.matches('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th')) {
+                                if (!node.getAttribute('data-original-font-size')) {
+                                    const size = parseInt(window.getComputedStyle(node).fontSize);
+                                    if (!isNaN(size)) {
+                                        node.setAttribute('data-original-font-size', size);
+                                        node.style.fontSize = `${size * scale}px`;
+                                    }
+                                }
+                            }
+
+                            // Apply to child elements
+                            node.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th').forEach(el => {
+                                if (!el.getAttribute('data-original-font-size')) {
+                                    const size = parseInt(window.getComputedStyle(el).fontSize);
+                                    if (!isNaN(size)) {
+                                        el.setAttribute('data-original-font-size', size);
+                                        el.style.fontSize = `${size * scale}px`;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        };
+
+        // Create and start the observer
+        const observer = new MutationObserver(applyFontSizeToNewElements);
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Cleanup function
+        return () => observer.disconnect();
+    }, []);
+
     return (
         <Router>
-            <ThemeProvider theme={theme}>
+            <ThemeProvider theme={currentTheme}>
                 <CssBaseline/>
                 <Box sx={{
                     minHeight: '100vh',
@@ -349,6 +409,9 @@ function App() {
                         />
                         <Route path="*" element={renderView()}/>
                     </Routes>
+
+                    {/* Add the AccessibilityWidget component */}
+                    <AccessibilityWidget onThemeChange={handleThemeChange} />
                 </Box>
             </ThemeProvider>
         </Router>

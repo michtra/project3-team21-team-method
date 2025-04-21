@@ -1,4 +1,3 @@
-// ManagerInventoryView.js
 import React, {useState, useEffect} from 'react';
 import {fetchInventory, createInventory, updateInventory} from '../api';
 import {
@@ -174,9 +173,9 @@ const ManagerInventoryView = () => {
                     <Table>
                         <TableHead sx={{bgcolor: 'primary.dark'}}>
                             <TableRow>
-                                <TableCell sx={{color: 'common.white'}}>Name</TableCell>
-                                <TableCell align="right" sx={{color: 'common.white'}}>Quantity</TableCell>
-                                <TableCell align="center" sx={{color: 'common.white'}}>Actions</TableCell>
+                                <TableCell sx={{color: 'primary.contrastText'}}>Name</TableCell>
+                                <TableCell align="right" sx={{color: 'primary.contrastText'}}>Quantity</TableCell>
+                                <TableCell align="center" sx={{color: 'primary.contrastText'}}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

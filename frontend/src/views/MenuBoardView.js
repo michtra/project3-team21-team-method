@@ -217,7 +217,7 @@ function MenuBoardView() {
                         p: 4,
                         mb: 6,
                         borderRadius: 3,
-                        bgcolor: 'background.paper',
+                        bgcolor: 'background.paper', // use theme background color
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center'
@@ -230,20 +230,18 @@ function MenuBoardView() {
                         sx={{
                             fontWeight: 600,
                             letterSpacing: 1,
-                            color: 'white',
+                            color: 'text.primary', // use theme text color
                             mb: 2,
-                            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
                         }}
                     >
                         Sharetea Menu
                     </Typography>
                     <Typography
                         variant="h6"
-                        color="text.secondary"
+                        color="text.secondary" // use the theme's text.secondary color
                         align="center"
                         sx={{
                             opacity: 0.8,
-                            color: 'white',
                             maxWidth: 700
                         }}
                     >
@@ -258,25 +256,25 @@ function MenuBoardView() {
                         mt: 2,
                         p: 1,
                         borderRadius: 1,
-                        bgcolor: 'rgba(255,255,255,0.1)'
+                        bgcolor: 'action.hover' // use theme-appropriate background
                     }}>
-                        <Typography variant="caption" color="white">Allergens:</Typography>
+                        <Typography variant="caption" color="text.primary">Allergens:</Typography>
                         <Tooltip title="Contains Dairy" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <LuMilk size={16} style={{color: 'white'}}/>
-                                <Typography variant="caption" color="white">Dairy</Typography>
+                                <LuMilk size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <Typography variant="caption" color="text.primary">Dairy</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Nuts" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <GiPeanut size={16} style={{color: 'white'}}/>
-                                <Typography variant="caption" color="white">Nuts</Typography>
+                                <GiPeanut size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <Typography variant="caption" color="text.primary">Nuts</Typography>
                             </Box>
                         </Tooltip>
                         <Tooltip title="Contains Honey" arrow>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <SiHoneygain size={16} style={{color: 'white'}}/>
-                                <Typography variant="caption" color="white">Honey</Typography>
+                                <SiHoneygain size={16} color="inherit" /> {/* Use inherited color instead of hardcoded white */}
+                                <Typography variant="caption" color="text.primary">Honey</Typography>
                             </Box>
                         </Tooltip>
                     </Box>
