@@ -316,8 +316,8 @@ app.get('/api/reports/sales', async (req, res) => {
                    COUNT(*)            AS quantity_sold
             FROM customer_transaction ct
                      JOIN product p ON ct.product_id = p.product_id
-            WHERE ct.purchase_date BETWEEN $1::date
-              AND $2::date
+            WHERE ct.purchase_date >= $1::date
+              AND ct.purchase_date < ($2::date + INTERVAL '1 day')
             GROUP BY ct.product_id, p.product_name, p.product_type
             ORDER BY total_cost DESC
         `;
@@ -358,8 +358,8 @@ app.get('/api/reports/inventory-usage', async (req, res) => {
                      JOIN
                  (SELECT product_id, COUNT(order_id) AS order_count
                   FROM customer_transaction
-                  WHERE purchase_date BETWEEN $1::date
-                    AND $2::date
+                  WHERE purchase_date >= $1::date
+                    AND purchase_date < ($2::date + INTERVAL '1 day')
                   GROUP BY product_id) ct
                  ON mii.product_id = ct.product_id
             GROUP BY mii.item_id, i.item_name, i.amount
