@@ -114,11 +114,13 @@ API_MASTER_KEY="accepted api key"
 - `npm i`
 - **.env.production:**
 ```
-REACT_APP_API_URL=http://domain.com/api
+REACT_APP_API_URL=https://domain.com/api
 REACT_APP_API_KEY='your_api_key_here'
 REACT_APP_OPENWEATHER_API_KEY='your_api_key_here'
 REACT_APP_GOOGLE_CLIENT_ID='your_client_id_here'
 ```
+   ⚠️ **Important**:
+   - Ensure that `REACT_APP_API_URL` starts with **https**.
 
 ### VPS Deployment
 Note that API keys are baked into the build; this is just for demoing purposes.
