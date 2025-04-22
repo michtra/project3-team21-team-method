@@ -40,10 +40,11 @@ const ProductSection = ({
                     flexShrink: 0
                 }}
             >
-                <IconButton sx={{p: '10px'}} aria-label="search">
+                <IconButton sx={{p: '10px'}} aria-label="search" className="text-sizeable">
                     <SearchIcon/>
                 </IconButton>
                 <InputBase
+                    className="text-sizeable"
                     sx={{ml: 1, flex: 1}}
                     placeholder="Search for a drink..."
                     value={searchQuery}

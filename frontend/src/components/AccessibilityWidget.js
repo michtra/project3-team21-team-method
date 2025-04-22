@@ -196,7 +196,7 @@ function AccessibilityWidget({onThemeChange}) {
 
     function adjustFontSize(scale) {
         // Get all text elements that should be affected by the font size change
-        const elements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, dl, dt, li, ol, th, td, span, blockquote, .text-sizeable');
+        const elements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, dl, dt, li, ol, th, td, span, blockquote, .text-sizeable, .MuiTypography-root');
 
         // Apply font size changes to each element
         elements.forEach((element) => {

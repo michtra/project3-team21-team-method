@@ -40,6 +40,7 @@ const OrderSummary = ({
                     variant="contained"
                     color="primary"
                     size="large"
+                    className="text-sizeable"
                     disabled={cart.length === 0 || processingPayment}
                     onClick={processPayment}
                     startIcon={processingPayment ?
@@ -58,6 +59,7 @@ const OrderSummary = ({
                 <Button
                     variant="outlined"
                     color="error"
+                    className="text-sizeable"
                     disabled={cart.length === 0 || processingPayment}
                     onClick={clearCart}
                     startIcon={<CancelIcon/>}
