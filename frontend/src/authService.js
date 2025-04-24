@@ -1,15 +1,15 @@
-// authService.js (Simplified)
+// handles all authentication-related functionality with google oauth
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 const REDIRECT_URL = window.location.origin + '/oauth2callback';
 
-// scopes for profile and email
+// permission scopes we need from google - just basic profile info and email
 const SCOPES = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
 ];
 
-// generate login URL
+// creates the oauth url for redirecting users to google login
 export const getAuthUrl = () => {
     const params = new URLSearchParams({
         client_id: CLIENT_ID,

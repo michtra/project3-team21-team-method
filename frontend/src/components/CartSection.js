@@ -1,3 +1,4 @@
+// component that displays the shopping cart with items and order summary
 import React from 'react';
 import {Box, Paper, Typography, Chip, List} from '@mui/material';
 import {ShoppingCart as CartIcon} from '@mui/icons-material';

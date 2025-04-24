@@ -1,17 +1,20 @@
+// custom hook that manages shopping cart state and operations
 import { useState, useCallback, useEffect } from 'react';
 
 const useCart = () => {
     const [cart, setCart] = useState([]);
     const [orderTotal, setOrderTotal] = useState({ subtotal: 0, tax: 0, total: 0 });
 
+    // calculates order totals including subtotal, tax and final amount
     const calculateTotals = useCallback(() => {
         const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const taxRate = 0.0825;
+        const taxRate = 0.0825; // 8.25% tax rate
         const tax = subtotal * taxRate;
         const total = subtotal + tax;
         setOrderTotal({ subtotal, tax, total });
     }, [cart]);
 
+    // recalculate totals whenever cart changes
     useEffect(() => {
         calculateTotals();
     }, [cart, calculateTotals]);
@@ -42,13 +45,15 @@ const useCart = () => {
         setCart(prev => [...prev, cartItem]);
     };
 
+    // removes an item from the cart by filtering it out
     const removeFromCart = (cartItemId) => {
         setCart(prevCart => prevCart.filter(item => item.id !== cartItemId));
     };
 
+    // updates the quantity of a specific cart item
     const updateQuantity = (cartItemId, newQuantity) => {
         if (newQuantity < 1) {
-            return;
+            return; // prevent zero or negative quantities
         }
         setCart(prevCart => prevCart.map(item =>
             item.id === cartItemId
@@ -57,9 +62,10 @@ const useCart = () => {
         ));
     };
 
+    // empties the cart completely and resets totals
     const clearCart = () => {
         setCart([]);
-        setOrderTotal({ subtotal: 0, tax: 0, total: 0 }); // Reset totals too
+        setOrderTotal({ subtotal: 0, tax: 0, total: 0 }); // reset totals too
     };
 
     const getIceText = (iceValue) => {

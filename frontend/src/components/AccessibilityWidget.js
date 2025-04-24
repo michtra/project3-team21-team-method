@@ -1,3 +1,4 @@
+// accessibility widget that provides font size adjustment, high contrast mode, and translation options
 import React, {useState, useEffect} from 'react';
 import {
     Box,
@@ -22,10 +23,9 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import baseTheme from '../theme';
 import {createTheme} from '@mui/material/styles';
-// Import our new TranslationControl component
 import TranslationControl from './TranslationControl';
 
-// Create high contrast themes outside the component to prevent recreation on each render
+// create high contrast themes outside the component to prevent recreation on each render
 const darkHighContrastTheme = createTheme({
     ...baseTheme,
     palette: {
@@ -120,7 +120,7 @@ const lightHighContrastTheme = createTheme({
     },
 });
 
-// Helper function to get theme based on settings
+// helper function to determine which theme to use based on user's settings
 const getThemeFromSettings = (highContrast, contrastMode) => {
     if (highContrast) {
         return contrastMode === 'dark' ? darkHighContrastTheme : lightHighContrastTheme;
@@ -135,7 +135,7 @@ function AccessibilityWidget({onThemeChange}) {
     const [highContrast, setHighContrast] = useState(false);
     const [contrastMode, setContrastMode] = useState('dark');
 
-    // load saved settings on initial mount
+    // load previously saved accessibility settings when component first mounts
     useEffect(() => {
         const savedSettings = localStorage.getItem('accessibilitySettings');
         if (savedSettings) {
@@ -194,8 +194,9 @@ function AccessibilityWidget({onThemeChange}) {
         onThemeChange(theme);
     }, [highContrast, contrastMode, onThemeChange]);
 
+    // applies font size scaling to all text elements on the page
     function adjustFontSize(scale) {
-        // Get all text elements that should be affected by the font size change
+        // get all text elements that should be affected by the font size change
         const elements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, dl, dt, li, ol, th, td, span, blockquote, .text-sizeable, .MuiTypography-root');
 
         // Apply font size changes to each element
@@ -256,7 +257,7 @@ function AccessibilityWidget({onThemeChange}) {
         document.body.setAttribute('data-font-scale', String(scale));
     }
 
-    // Reset all accessibility settings
+    // resets all accessibility settings to their default values
     function resetSettings() {
         setFontSize(1);
         setHighContrast(false);

@@ -1,4 +1,4 @@
-// DrinkCustomizationModal.js
+// modal dialog for customizing drinks with options for sugar, ice and toppings
 import React, {useState, useEffect, useMemo} from 'react';
 import {
     Dialog,
@@ -31,7 +31,7 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
     const [selectedToppings, setSelectedToppings] = useState({});
     const [totalPrice, setTotalPrice] = useState(product?.product_cost || 0);
 
-    // predefined ice options with numeric values and display labels
+    // ice options as a scale from 0-0.75 with corresponding display labels
     const iceOptions = [
         {value: 0, label: "No Ice"},
         {value: 0.25, label: "Less Ice"},
@@ -41,7 +41,7 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
 
     const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
 
-    // available topping options with pricing
+    // available toppings that can be added to drinks with their prices
     const toppingOptions = useMemo(() => [
         {id: 'pearls', name: 'Boba Pearls', price: 0.75},
         {id: 'jelly', name: 'Grass Jelly', price: 0.75},
@@ -50,7 +50,7 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
         {id: 'red_bean', name: 'Red Bean', price: 0.75}
     ], []);
 
-    // calculate total price when toppings or product changes
+    // recalculates the total price whenever toppings or product selection changes
     useEffect(() => {
         // start with base product cost
         let newTotal = product?.product_cost || 0;
@@ -97,6 +97,7 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
         return selectedToppings[toppingId] || 0;
     };
 
+    // creates the final customized product object and passes it to the parent component
     const handleSubmit = () => {
         const customizedProduct = {
             product_id: product.product_id,

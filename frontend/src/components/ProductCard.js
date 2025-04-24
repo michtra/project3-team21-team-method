@@ -1,3 +1,4 @@
+// component for displaying individual product info and image on the menu
 import React from 'react';
 import {Card, CardActionArea, Box, CardContent, Typography, Chip, Fade, Tooltip} from '@mui/material';
 import ProductImage from './ProductImage';

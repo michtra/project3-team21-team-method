@@ -1,3 +1,4 @@
+// component that displays order totals and checkout/clear buttons
 import React from 'react';
 import {Box, Typography, Divider, Button, Alert, CircularProgress} from '@mui/material';
 import {Payment as PaymentIcon, Cancel as CancelIcon} from '@mui/icons-material';

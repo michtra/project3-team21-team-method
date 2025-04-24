@@ -1,13 +1,14 @@
+// main view for customer-facing kiosk allowing product browsing and ordering
 import React, {useState, useCallback, useMemo} from 'react';
 import {Box, CircularProgress, Typography, Alert, Button, Container, Snackbar, useTheme} from '@mui/material';
 
-// Custom hooks
+// custom hooks for managing products, cart, payment and weather data
 import useProducts from '../hooks/useProducts';
 import useCart from '../hooks/useCart';
 import useTransaction from '../hooks/useTransaction';
 import useWeather from '../hooks/useWeather';
 
-// Import custom components
+// ui components for different sections of the kiosk interface
 import KioskHeader from '../components/KioskHeader';
 import ProductSection from '../components/ProductSection';
 import CartSection from '../components/CartSection';
@@ -20,6 +21,7 @@ function KioskView() {
     const [showAllergenInfo, setShowAllergenInfo] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    // define product categories with their display names and colors
     const categories = useMemo(() => [
         {id: 'all', name: 'All Drinks', color: theme.palette.primary.main},
         {id: 'milk_tea', name: 'Milk Tea', color: theme.palette.categories?.milkTea || '#e0ba6e'},
@@ -70,14 +72,17 @@ function KioskView() {
         handleCloseWeatherModal
     } = useWeather();
 
+    // opens customization modal when a product is clicked
     const handleProductClick = (product) => {
         setSelectedProduct(product);
     };
 
+    // closes the customization modal
     const closePopup = () => {
         setSelectedProduct(null);
     };
 
+    // determines the color to use for a product based on its category
     const getCategoryColor = useCallback((product) => {
         const categoryKey = product.category_id || product.product_type;
         if (categoryKey) {
@@ -85,7 +90,7 @@ function KioskView() {
             const category = categories.find(cat => cat.id === normalized);
             return category ? category.color : theme.palette.secondary.main;
         }
-        return theme.palette.secondary.main;
+        return theme.palette.secondary.main; // fallback color
     }, [categories, theme.palette.secondary.main]);
 
     if (loading) {

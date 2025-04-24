@@ -1,3 +1,4 @@
+// custom hook for handling payment processing and transaction creation
 import {useState, useEffect} from 'react';
 import {createTransaction, fetchTransactions} from '../api';
 
@@ -9,30 +10,34 @@ const useTransaction = (cart, orderTotal, clearCart) => {
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [currentOrder, setCurrentOrder] = useState(null);
 
-    // load initial transaction number on mount
+    // load the next transaction number when component mounts
     useEffect(() => {
         const loadTransactionNumber = async () => {
             try {
                 const transactions = await fetchTransactions();
                 const latestTransactionNum = transactions.length > 0 ?
                     transactions[0].customer_transaction_num : 2000;
-                setTransactionNumber(latestTransactionNum + 1); // Set the *next* number
+                setTransactionNumber(latestTransactionNum + 1); // get the next number in sequence
                 console.log('Next transaction number set to:', latestTransactionNum + 1);
             }
             catch (error) {
                 console.error('Error loading transaction number:', error);
+                // fallback to default number is handled by initial state
             }
         };
 
         loadTransactionNumber();
     }, []);
 
+    // helper function to get current date in central time zone with proper format
     function getTransactionDateInCDT() {
         const currentDate = new Date();
-        // toLocaleString for reliable timezone formatting
+        // using swedish locale gives ISO format (YYYY-MM-DD HH:MM:SS)
+        // then convert space to T for proper datetime format
         return currentDate.toLocaleString('sv-SE', {timeZone: 'America/Chicago'}).replace(' ', 'T');
     }
 
+    // processes payment and creates transaction record in the backend
     const processPayment = async () => {
         if (cart.length === 0) {
             setPaymentError('Your cart is empty.');
@@ -44,13 +49,14 @@ const useTransaction = (cart, orderTotal, clearCart) => {
         setPaymentSuccess(false);
 
         try {
-            // use the current transactionNumber state
+            // use the current transaction number from state
             const currentTransactionNum = transactionNumber;
 
+            // format transaction data for the api
             const transactionData = {
                 customer_id: 0, // kiosk orders are anonymous
                 transaction_date: getTransactionDateInCDT(),
-                transaction_number: currentTransactionNum, // use the number from state
+                transaction_number: currentTransactionNum,
                 items: cart.map(item => ({
                     product_id: parseInt(item.product_id, 10),
                     quantity: item.quantity,
@@ -68,15 +74,15 @@ const useTransaction = (cart, orderTotal, clearCart) => {
             // payment successful
             setPaymentSuccess(true);
 
-            // prepare for the *next* transaction
+            // increment transaction number for next order
             setTransactionNumber(prev => prev + 1);
 
-            // save current order details before clearing cart
+            // save current order details for receipt/confirmation
             setCurrentOrder({
                 items: [...cart], // create a copy of the cart items
                 total: orderTotal.total,
                 date: new Date(),
-                receiptNumber: currentTransactionNum // use the number that was just processed
+                receiptNumber: currentTransactionNum
             });
 
             setProcessingPayment(false);
@@ -92,6 +98,7 @@ const useTransaction = (cart, orderTotal, clearCart) => {
         }
     };
 
+    // closes order confirmation and resets states for next order
     const handleConfirmationClose = () => {
         setShowConfirmation(false);
         clearCart(); // clear cart for the next order

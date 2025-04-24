@@ -1,11 +1,11 @@
-// api.js: frontend API
+// contains all api functions for communicating with the backend server
 
-// use the correct API based on local testing or VPS hosting
+// load environment variables for api configuration
 const API_URL = process.env.REACT_APP_API_URL;
 const API_KEY = process.env.REACT_APP_API_KEY;
 const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 
-// Headers with API key
+// helper function to create headers with content type and api key
 const getHeaders = () => {
     return {
         "Content-Type": "application/json",

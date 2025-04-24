@@ -1,4 +1,4 @@
-// App.js (Modified with Accessibility Integration)
+// main application component that handles routing, authentication and the central hub for all views
 import React, { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -40,13 +40,13 @@ function App() {
     const [user, setUser] = useState(null);
     const [currentTheme, setCurrentTheme] = useState(theme);
 
-    // Handle theme changes from accessibility widget
-    // Wrap in useCallback to prevent unnecessary re-renders
+    // handle theme changes from accessibility widget
+    // wrap in useCallback to prevent unnecessary re-renders
     const handleThemeChange = useCallback((newTheme) => {
         setCurrentTheme(newTheme);
     }, []);
 
-    // check for login on initial load
+    // check if user is already logged in when app first loads
     useEffect(() => {
         const storedUser = getUserFromStorage();
         if (storedUser) {
@@ -54,7 +54,7 @@ function App() {
         }
     }, []);
 
-    // use a listener to detect when localStorage/sessionStorage changes
+    // listen for changes to localStorage/sessionStorage to update user state
     useEffect(() => {
         function handleStorageChange() {
             const storedUser = getUserFromStorage();
@@ -86,7 +86,7 @@ function App() {
         setCurrentView('main');
     };
 
-    // navigation card data for main menu
+    // data for the main menu navigation cards - each card represents a different app view
     const navigationCards = [
         {
             id: 'kiosk',

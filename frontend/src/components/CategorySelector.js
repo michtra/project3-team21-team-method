@@ -1,3 +1,4 @@
+// component that displays filterable product categories as clickable chips
 import React from 'react';
 import {Box, Chip, Fade} from '@mui/material';
 

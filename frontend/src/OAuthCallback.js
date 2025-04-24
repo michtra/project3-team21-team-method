@@ -1,4 +1,4 @@
-// OAuthCallback.js
+// handles the oauth callback after redirecting from google login
 import React, {useEffect, useState} from 'react';
 import {Box, CircularProgress, Typography, Paper} from '@mui/material';
 import {getUserInfo, saveUserToStorage, saveToken} from './authService';
@@ -10,9 +10,10 @@ function OAuthCallback() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // processes the oauth callback and extracts user information
         const processAuth = async () => {
             try {
-                // get token from URL hash fragment (using implicit flow)
+                // extract token from URL hash fragment (using implicit flow)
                 const hash = window.location.hash.substring(1);
                 const params = new URLSearchParams(hash);
                 const accessToken = params.get('access_token');
