@@ -52,7 +52,17 @@ function ProductGrid({products, handleProductClick, categories}) {
                                         sx={{height: '100%', p: 2}}
                                     >
                                         <CardContent sx={{p: 1}}>
-                                            <Typography variant="h6" component="div" gutterBottom noWrap>
+                                            <Typography 
+                                                variant="h6" 
+                                                component="div" 
+                                                gutterBottom
+                                                sx={{
+                                                    fontSize: {xs: '1rem', sm: '1.25rem'},
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
                                                 <strong>{product.product_id}</strong> - {product.product_name}
                                             </Typography>
                                             <Box sx={{display: 'flex', alignItems: 'center'}}>

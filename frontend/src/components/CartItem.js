@@ -11,7 +11,16 @@ const CartItem = ({item, updateQuantity, removeFromCart, getIceText, theme}) => 
         >
             <Box sx={{width: '100%'}}>
                 <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 1}}>
-                    <Typography variant="body1" sx={{fontWeight: 500, pr: 1}}>
+                    <Typography 
+                        variant="body1" 
+                        sx={{
+                            fontWeight: 500, 
+                            pr: 1,
+                            fontSize: {xs: '0.9rem', sm: '1rem'},
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}
+                    >
                         <strong>#{item.code}</strong> - {item.name}
                     </Typography>
                     <Typography variant="body1" sx={{
