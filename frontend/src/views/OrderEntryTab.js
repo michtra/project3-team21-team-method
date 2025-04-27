@@ -345,6 +345,7 @@ function OrderEntryTab({user, cart, setCart}) {
                     categories={categories}
                     activeCategory={activeCategory}
                     handleCategoryChange={handleCategoryChange}
+                    theme={theme}
                 />
 
                 <ProductGrid

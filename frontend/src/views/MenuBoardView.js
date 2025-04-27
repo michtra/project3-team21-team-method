@@ -214,7 +214,13 @@ function MenuBoardView() {
                                         p: 2,
                                         pl: 4,
                                         borderRadius: 2,
-                                        borderLeft: `8px solid ${categoryColors[category.id]}`,
+                                        borderLeft: `8px solid ${
+                                            theme.palette.mode === 'light' && theme.palette.primary.main === '#000000' 
+                                                ? 'black' 
+                                                : theme.palette.mode === 'dark' && theme.palette.primary.main === '#ffffff'
+                                                    ? 'white'
+                                                    : categoryColors[category.id]
+                                        }`,
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 2
@@ -225,7 +231,11 @@ function MenuBoardView() {
                                         component="h2"
                                         sx={{
                                             fontWeight: 500,
-                                            color: categoryColors[category.id]
+                                            color: theme.palette.mode === 'light' && theme.palette.primary.main === '#000000' 
+                                                ? 'black' 
+                                                : theme.palette.mode === 'dark' && theme.palette.primary.main === '#ffffff'
+                                                    ? 'white'
+                                                    : categoryColors[category.id]
                                         }}
                                     >
                                         {category.name}
