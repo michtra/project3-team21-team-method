@@ -19,7 +19,8 @@ const ProductSection = ({
         <Box
             sx={{
                 width: {xs: '100%', md: '65%'},
-                height: '100%',
+                height: {xs: 'auto', md: '100%'},
+                flex: {xs: '1 1 auto', md: 'auto'},
                 display: 'flex',
                 flexDirection: 'column',
                 p: {xs: 1, sm: 2, md: 3},
@@ -77,7 +78,7 @@ const ProductSection = ({
                 <Grid container spacing={{xs: 1, sm: 2, md: 3}}>
                     {filteredProducts.length > 0 ? (
                         filteredProducts.map((product, index) => (
-                            <Grid item xs={6} sm={6} md={4} key={product.product_id}>
+                            <Grid item xs={6} sm={4} md={4} lg={3} key={product.product_id}>
                                 <ProductCard
                                     product={product}
                                     index={index}

@@ -146,7 +146,14 @@ function KioskView() {
                 weatherCity={weatherCity}
             />
 
-            <Box sx={{display: 'flex', flexGrow: 1, overflow: 'hidden'}}>
+            <Box 
+                sx={{
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', md: 'row' },
+                    flexGrow: 1, 
+                    overflow: 'hidden'
+                }}
+            >
                 {/* Left side - Products catalog */}
                 <ProductSection
                     searchQuery={searchQuery}

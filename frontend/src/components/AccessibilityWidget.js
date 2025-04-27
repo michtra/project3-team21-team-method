@@ -97,16 +97,91 @@ const lightHighContrastTheme = createTheme({
         text: {
             primary: '#000000',
             secondary: '#222222',
-            disabled: 'rgba(0, 0, 0, 0.5)',
+            disabled: 'rgba(0, 0, 0, 0.7)', // Darkened for better visibility
+        },
+        error: {
+            main: '#d32f2f',
+            contrastText: '#ffffff',
+        },
+        action: {
+            active: '#000000',
+            hover: 'rgba(0, 0, 0, 0.1)',
+            selected: 'rgba(0, 0, 0, 0.2)',
+            disabled: 'rgba(0, 0, 0, 0.7)', // Darkened for better visibility
+            disabledBackground: 'rgba(0, 0, 0, 0.12)',
         },
     },
     components: {
         ...baseTheme.components,
+        MuiSvgIcon: {
+            styleOverrides: {
+                root: {
+                    // Force high contrast for all SVG icons
+                    color: 'inherit',
+                    // Specific color handling for icons with explicit colors
+                    '&.MuiSvgIcon-colorPrimary': {
+                        color: '#000000',
+                    },
+                    '&.MuiSvgIcon-colorSecondary': {
+                        color: '#0000cc',
+                    },
+                    '&.MuiSvgIcon-colorError': {
+                        color: '#d32f2f',
+                    },
+                    '&.MuiSvgIcon-colorSuccess': {
+                        color: '#2e7d32',
+                    },
+                    '&.MuiSvgIcon-colorInfo': {
+                        color: '#0288d1',
+                    },
+                    '&.MuiSvgIcon-colorWarning': {
+                        color: '#ed6c02',
+                    },
+                },
+            },
+        },
         MuiButton: {
             styleOverrides: {
                 root: {
                     border: '2px solid black',
                     fontWeight: 700,
+                    color: 'inherit',
+                },
+                containedPrimary: {
+                    color: '#ffffff',
+                    backgroundColor: '#000000',
+                    '&:hover': {
+                        backgroundColor: '#333333',
+                    },
+                    '&.Mui-disabled': {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    },
+                },
+                containedSecondary: {
+                    color: '#ffffff',
+                    backgroundColor: '#0000cc',
+                },
+                outlined: {
+                    color: '#000000',
+                    borderColor: '#000000',
+                    '&:hover': {
+                        borderColor: '#000000',
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    },
+                },
+                outlinedError: {
+                    color: '#d32f2f',
+                    borderColor: '#d32f2f',
+                    backgroundColor: 'transparent',
+                    '&:hover': {
+                        backgroundColor: 'rgba(211, 47, 47, 0.04)',
+                        borderColor: '#d32f2f',
+                    },
+                    '&.Mui-disabled': {
+                        color: 'rgba(211, 47, 47, 0.7)',
+                        borderColor: 'rgba(211, 47, 47, 0.5)',
+                    },
                 },
             },
         },
@@ -114,6 +189,25 @@ const lightHighContrastTheme = createTheme({
             styleOverrides: {
                 root: {
                     border: '1px solid black',
+                },
+            },
+        },
+        MuiIconButton: {
+            styleOverrides: {
+                root: {
+                    color: 'inherit',
+                    '&.MuiIconButton-colorPrimary': {
+                        color: '#000000',
+                    },
+                    '&.MuiIconButton-colorError': {
+                        color: '#d32f2f',
+                    },
+                    '&.MuiIconButton-colorSecondary': {
+                        color: '#0000cc',
+                    },
+                    '&.Mui-disabled': {
+                        color: 'rgba(0, 0, 0, 0.5)',
+                    },
                 },
             },
         },

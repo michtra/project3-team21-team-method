@@ -124,7 +124,13 @@ function App() {
 
     const renderMainMenu = () => (
         <Container maxWidth="lg"
-                   sx={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                   sx={{
+                       minHeight: '100vh', 
+                       display: 'flex', 
+                       alignItems: 'center', 
+                       justifyContent: 'center',
+                       py: {xs: 4, md: 0}
+                   }}>
             <Box sx={{width: '100%', textAlign: 'center'}}>
                 {/* Header with logo and title */}
                 <Box
@@ -141,7 +147,8 @@ function App() {
                         sx={{
                             fontWeight: 700,
                             color: 'primary.main',
-                            mb: 2
+                            mb: 2,
+                            fontSize: {xs: '2rem', sm: '2.5rem', md: '3rem'}
                         }}
                     >
                         Method POS System
@@ -189,18 +196,17 @@ function App() {
                             justifyContent: 'center'
                         }}>
                             <Box sx={{
-                                width: 300,
-                                height: 300,
+                                width: {xs: '100%', sm: 300},
+                                height: {xs: 'auto', sm: 300},
+                                minHeight: {xs: 220, sm: 300},
                                 position: 'relative'
                             }}>
                                 <Card
                                     elevation={4}
                                     sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: 300,
-                                        height: 300,
+                                        position: 'relative',
+                                        width: '100%',
+                                        height: '100%',
                                         borderRadius: 3,
                                         transition: 'all 0.3s',
                                         display: 'flex',
@@ -286,7 +292,8 @@ function App() {
                                                 sx={{
                                                     fontWeight: 600,
                                                     color: 'text.primary',
-                                                    mb: 2
+                                                    mb: 2,
+                                                    fontSize: {xs: '1.25rem', sm: '1.5rem'}
                                                 }}
                                             >
                                                 {card.title}
@@ -421,9 +428,11 @@ function App() {
                                 color="primary"
                                 startIcon={<BackIcon/>}
                                 onClick={() => setCurrentView('main')}
+                                size="small"
                                 sx={{
-                                    borderRadius: 8,
-                                    px: 2
+                                    borderRadius: {xs: 4, sm: 8},
+                                    px: {xs: 1, sm: 2},
+                                    fontSize: {xs: '0.75rem', sm: '0.875rem'}
                                 }}
                             >
                                 Back to Main Menu

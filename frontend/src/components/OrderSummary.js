@@ -64,7 +64,21 @@ const OrderSummary = ({
                     disabled={cart.length === 0 || processingPayment}
                     onClick={clearCart}
                     startIcon={<CancelIcon/>}
-                    sx={{borderRadius: 3}}
+                    sx={{
+                        borderRadius: 3,
+                        // Force high contrast regardless of theme
+                        color: '#d32f2f',
+                        borderColor: '#d32f2f',
+                        backgroundColor: 'transparent',
+                        '&:hover': {
+                            backgroundColor: 'rgba(211, 47, 47, 0.04)',
+                            borderColor: '#d32f2f',
+                        },
+                        '&.Mui-disabled': {
+                            color: 'rgba(211, 47, 47, 0.7)',
+                            borderColor: 'rgba(211, 47, 47, 0.5)',
+                        },
+                    }}
                 >
                     Clear Order
                 </Button>

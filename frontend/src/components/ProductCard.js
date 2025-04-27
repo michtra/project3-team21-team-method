@@ -20,7 +20,7 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
         <Fade in={true} style={{transitionDelay: `${index * 30}ms`}}>
             <Card
                 sx={{
-                    height: 320,
+                    height: {xs: 280, sm: 320},
                     width: '100%',
                     borderRadius: 4,
                     display: 'flex',
@@ -49,9 +49,9 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                     <Box
                         sx={{
                             width: '100%',
-                            height: 160,
+                            height: {xs: 130, sm: 160},
                             position: 'relative',
-                            mb: 2,
+                            mb: 1,
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -60,8 +60,8 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                     >
                         <Box
                             sx={{
-                                width: 140,
-                                height: 140,
+                                width: {xs: 110, sm: 140},
+                                height: {xs: 110, sm: 140},
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center'
@@ -71,7 +71,7 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                                 productId={product.product_id}
                                 productName={product.product_name}
                                 categoryName={categoryName}
-                                height={140}
+                                height="100%"
                                 style={{
                                     borderRadius: 8,
                                     backgroundColor: 'rgba(0,0,0,0.1)',

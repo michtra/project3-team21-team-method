@@ -21,13 +21,19 @@ const CartSection = ({
         <Box
             sx={{
                 width: {xs: '100%', md: '35%'},
-                height: '100%',
-                boxShadow: '-4px 0 15px rgba(0,0,0,0.1)',
+                height: {xs: 'auto', md: '100%'},
+                minHeight: {xs: '300px', md: 'auto'},
+                boxShadow: {
+                    xs: '0 -4px 15px rgba(0,0,0,0.1)',
+                    md: '-4px 0 15px rgba(0,0,0,0.1)'
+                },
                 borderLeft: {xs: 'none', md: `1px solid ${theme.palette.divider}`},
+                borderTop: {xs: `1px solid ${theme.palette.divider}`, md: 'none'},
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: 'background.paper',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                zIndex: 1
             }}
         >
             {/* Order header */}
@@ -39,7 +45,12 @@ const CartSection = ({
                 gap: 2,
                 flexShrink: 0
             }}>
-                <CartIcon color="primary"/>
+                <CartIcon sx={{ 
+                    // Force high contrast for cart icon with a black outline in light theme
+                    color: theme.palette.mode === 'light' ? '#000000' : theme.palette.primary.main,
+                    stroke: theme.palette.mode === 'light' ? '#000000' : 'none',
+                    strokeWidth: theme.palette.mode === 'light' ? 1 : 0,
+                }} />
                 <Typography variant="h5" sx={{fontWeight: 600}}>Your Order</Typography>
                 <Chip
                     label={`${cart.reduce((acc, item) => acc + item.quantity, 0)} item(s)`}
@@ -67,7 +78,14 @@ const CartSection = ({
                         py: 8,
                         textAlign: 'center'
                     }}>
-                        <CartIcon sx={{fontSize: 60, color: 'action.disabled', mb: 2}}/>
+                        <CartIcon sx={{
+                            fontSize: 60, 
+                            mb: 2,
+                            // Force high contrast for empty cart icon
+                            color: theme.palette.mode === 'light' ? 'rgba(0, 0, 0, 0.7)' : 'action.disabled',
+                            stroke: theme.palette.mode === 'light' ? '#000000' : 'none',
+                            strokeWidth: theme.palette.mode === 'light' ? 0.5 : 0,
+                        }} />
                         <Typography variant="h6" color="text.secondary" gutterBottom>Your cart is empty</Typography>
                         <Typography variant="body2" color="text.secondary">Add items from the menu!</Typography>
                     </Box>
