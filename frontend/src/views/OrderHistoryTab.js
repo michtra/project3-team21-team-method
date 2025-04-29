@@ -350,7 +350,7 @@ function OrderHistoryTab() {
                                         <TableCell>
                                             <Box sx={{display: 'flex', alignItems: 'center'}}>
                                                 <CalendarIcon sx={{mr: 1, color: 'text.secondary', fontSize: 20}}/>
-                                                {order.date.toLocaleString()}
+                                                {order.date.toLocaleString('en-US', {timeZone: 'America/Chicago'})}
                                             </Box>
                                         </TableCell>
 
