@@ -487,7 +487,7 @@ app.post('/api/transactions', async (req, res) => {
 
             const iceAmount = customizations?.ice;
             let toppingType = "None";
-            if (Object.keys(customizations.toppings).length > 0) {
+            if (customizations?.toppings && Object.keys(customizations.toppings).length > 0) {
                 toppingType = Object.keys(customizations.toppings).join(', ');
             }
 
@@ -508,47 +508,140 @@ app.post('/api/transactions', async (req, res) => {
                 ]
             );
 
-            // update inventory based on menu_item_inventory table
-            const menuItemsResult = await pool.query(
-                'SELECT item_id, quantity_used FROM menu_item_inventory WHERE product_id = $1',
+            // Get the product name for inventory lookup
+            const productResult = await pool.query(
+                'SELECT product_name FROM product WHERE product_id = $1',
                 [product_id]
             );
 
-            // process each inventory item used in this product
-            for (const row of menuItemsResult.rows) {
-                const {item_id, quantity_used} = row;
-                const totalQuantityUsed = quantity_used * quantity;
-
-                // check if there's enough inventory
-                const inventoryResult = await pool.query(
-                    'SELECT amount FROM inventory WHERE item_id = $1',
-                    [item_id]
-                );
-
-                if (inventoryResult.rows.length === 0) {
-                    await pool.query('ROLLBACK');
-                    return res.status(400).json({error: `Inventory item ${item_id} not found`});
-                }
-
-                const availableAmount = inventoryResult.rows[0].amount;
-
-                if (availableAmount < totalQuantityUsed) {
-                    await pool.query('ROLLBACK');
-                    return res.status(400).json({
-                        error: `Insufficient inventory for item ${item_id}. Available: ${availableAmount}, Needed: ${totalQuantityUsed}`
-                    });
-                }
-
-                // update the inventory
-                await pool.query(
-                    'UPDATE inventory SET amount = amount - $1 WHERE item_id = $2',
-                    [totalQuantityUsed, item_id]
-                );
+            if (productResult.rows.length === 0) {
+                await pool.query('ROLLBACK');
+                return res.status(400).json({error: `Product with ID ${product_id} not found`});
             }
 
-            // TODO process customizations inventory
-        }
+            const productName = productResult.rows[0].product_name;
+            
+            // for tea items, decrement the mix
+            if (productName.toLowerCase().includes('tea')) {
+                const mixName = `${productName} Mix`;
+                
+                // find the mix in inventory by name
+                const mixResult = await pool.query(
+                    'SELECT item_id, amount FROM inventory WHERE item_name = $1',
+                    [mixName]
+                );
 
+                if (mixResult.rows.length > 0) {
+                    const mixItem = mixResult.rows[0];
+                    const totalUsed = quantity; // each drink uses 1 unit of mix, multiplied by order quantity
+
+                    // check if enough inventory
+                    if (mixItem.amount < totalUsed) {
+                        await pool.query('ROLLBACK');
+                        return res.status(400).json({
+                            error: `Insufficient inventory for ${mixName}. Available: ${mixItem.amount}, Needed: ${totalUsed}`
+                        });
+                    }
+
+                    // update inventory
+                    await pool.query(
+                        'UPDATE inventory SET amount = amount - $1 WHERE item_id = $2',
+                        [totalUsed, mixItem.item_id]
+                    );
+                }
+                else {
+                    console.log(`Warning: Mix item "${mixName}" not found in inventory`);
+                }
+            }
+
+            // process ice cubes based on ice level
+            if (iceAmount !== undefined) {
+                let iceCubesUsed = 0;
+                
+                // convert ice amount to cubes: 0 for none, 1 for light, 2 for regular, 3 for extra
+                // disgusting i know
+                if (iceAmount === 0) {
+                    iceCubesUsed = 0;
+                }
+                else if (iceAmount === 0.25) {
+                    iceCubesUsed = 1; // Light ice
+                }
+                else if (iceAmount === 0.5) {
+                    iceCubesUsed = 2; // Regular ice
+                }
+                else if (iceAmount === 0.75) {
+                    iceCubesUsed = 3; // Extra ice
+                }
+                
+                // multiply by quantity
+                iceCubesUsed *= quantity;
+                
+                if (iceCubesUsed > 0) {
+                    // find ice in inventory
+                    const iceResult = await pool.query(
+                        'SELECT item_id, amount FROM inventory WHERE item_name = $1',
+                        ['Ice cubes']
+                    );
+
+                    if (iceResult.rows.length > 0) {
+                        const iceItem = iceResult.rows[0];
+                        
+                        // check if enough inventory
+                        if (iceItem.amount < iceCubesUsed) {
+                            await pool.query('ROLLBACK');
+                            return res.status(400).json({
+                                error: `Insufficient inventory for Ice cubes. Available: ${iceItem.amount}, Needed: ${iceCubesUsed}`
+                            });
+                        }
+
+                        // update inventory
+                        await pool.query(
+                            'UPDATE inventory SET amount = amount - $1 WHERE item_id = $2',
+                            [iceCubesUsed, iceItem.item_id]
+                        );
+                    } else {
+                        console.log('Warning: "Ice cubes" not found in inventory');
+                    }
+                }
+            }
+
+            // process toppings
+            if (customizations?.toppings && Object.keys(customizations.toppings).length > 0) {
+                for (const [toppingName, toppingQuantity] of Object.entries(customizations.toppings)) {
+                    if (toppingQuantity > 0) {
+                        // total topping quantity needed for this order
+                        const totalToppingUsed = toppingQuantity * quantity;
+                        
+                        // find topping in inventory by exact name
+                        const toppingResult = await pool.query(
+                            'SELECT item_id, amount FROM inventory WHERE item_name = $1',
+                            [toppingName]
+                        );
+
+                        if (toppingResult.rows.length > 0) {
+                            const toppingItem = toppingResult.rows[0];
+                            
+                            // check if enough inventory
+                            if (toppingItem.amount < totalToppingUsed) {
+                                await pool.query('ROLLBACK');
+                                return res.status(400).json({
+                                    error: `Insufficient inventory for ${toppingName}. Available: ${toppingItem.amount}, Needed: ${totalToppingUsed}`
+                                });
+                            }
+
+                            // update inventory
+                            await pool.query(
+                                'UPDATE inventory SET amount = amount - $1 WHERE item_id = $2',
+                                [totalToppingUsed, toppingItem.item_id]
+                            );
+                        }
+                        else {
+                            console.log(`Warning: Topping "${toppingName}" not found in inventory`);
+                        }
+                    }
+                }
+            }
+        }
 
         // commit the transaction
         await pool.query('COMMIT');

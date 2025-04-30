@@ -42,12 +42,12 @@ function DrinkCustomizationModal({product, onClose, onConfirm}) {
     const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
 
     // available toppings that can be added to drinks with their prices
+    // Ensure the id matches EXACTLY with the inventory item name
     const toppingOptions = useMemo(() => [
-        {id: 'pearls', name: 'Boba Pearls', price: 0.75},
-        {id: 'jelly', name: 'Grass Jelly', price: 0.75},
-        {id: 'pudding', name: 'Pudding', price: 0.75},
-        {id: 'aloe', name: 'Aloe Vera', price: 0.75},
-        {id: 'red_bean', name: 'Red Bean', price: 0.75}
+        {id: 'Boba', name: 'Boba Pearls', price: 0.75},
+        {id: 'Jelly', name: 'Grass Jelly', price: 0.75},
+        {id: 'Aloe', name: 'Aloe Vera', price: 0.75},
+        {id: 'Red Bean', name: 'Red Bean', price: 0.75}
     ], []);
 
     // recalculates the total price whenever toppings or product selection changes
