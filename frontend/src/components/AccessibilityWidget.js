@@ -277,10 +277,10 @@ function AccessibilityWidget({onThemeChange}) {
         }));
     }, [fontSize, highContrast, contrastMode]);
 
-    // Apply font size changes when fontSize state changes
+    // Apply font size changes when fontSize state changes or when the drawer opens (for re-applying after view changes)
     useEffect(() => {
         adjustFontSize(fontSize);
-    }, [fontSize]);
+    }, [fontSize, open]);
 
     // Notify parent component when theme-related settings change
     useEffect(() => {

@@ -112,6 +112,7 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                         <Typography
                             variant="h6"
                             component="div"
+                            className="text-sizeable"
                             sx={{
                                 fontWeight: 600,
                                 mb: 0.5,
@@ -140,11 +141,15 @@ const ProductCard = ({product, index, handleProductClick, getCategoryColor, cate
                             width: '100%'
                         }}>
                             <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                <Typography variant="h5" sx={{
-                                    fontWeight: 700,
-                                    color: categoryColor,
-                                    fontSize: {xs: '1.1rem', sm: '1.5rem'}
-                                }}>
+                                <Typography 
+                                    variant="h5" 
+                                    className="text-sizeable"
+                                    sx={{
+                                        fontWeight: 700,
+                                        color: categoryColor,
+                                        fontSize: {xs: '1.1rem', sm: '1.5rem'}
+                                    }}
+                                >
                                     ${product.product_cost.toFixed(2)}
                                 </Typography>
                                 {product.price_increased && (

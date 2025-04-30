@@ -370,7 +370,7 @@ function App() {
                     mutation.addedNodes.forEach(node => {
                         if (node.nodeType === 1) { // ELEMENT_NODE
                             // Apply to the element itself if it's a text element
-                            if (node.matches('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th')) {
+                            if (node.matches('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, .MuiTypography-root')) {
                                 if (!node.getAttribute('data-original-font-size')) {
                                     const size = parseInt(window.getComputedStyle(node).fontSize);
                                     if (!isNaN(size)) {
@@ -380,8 +380,8 @@ function App() {
                                 }
                             }
 
-                            // Apply to child elements
-                            node.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th').forEach(el => {
+                            // Apply to child elements - include Typography explicitly
+                            node.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, .MuiTypography-root').forEach(el => {
                                 if (!el.getAttribute('data-original-font-size')) {
                                     const size = parseInt(window.getComputedStyle(el).fontSize);
                                     if (!isNaN(size)) {
@@ -427,7 +427,22 @@ function App() {
                                 variant="contained"
                                 color="primary"
                                 startIcon={<BackIcon/>}
-                                onClick={() => setCurrentView('main')}
+                                onClick={() => {
+                                    setCurrentView('main');
+                                    // force re-application of font scale when returning to main menu
+                                    const fontScale = document.body.getAttribute('data-font-scale');
+                                    if (fontScale) {
+                                        setTimeout(() => {
+                                            const scale = parseFloat(fontScale);
+                                            if (!isNaN(scale) && scale !== 1) {
+                                                const elements = document.querySelectorAll('.MuiTypography-root, .text-sizeable');
+                                                elements.forEach(el => {
+                                                    el.removeAttribute('data-original-font-size');
+                                                });
+                                            }
+                                        }, 50);
+                                    }
+                                }}
                                 size="small"
                                 sx={{
                                     borderRadius: {xs: 4, sm: 8},
